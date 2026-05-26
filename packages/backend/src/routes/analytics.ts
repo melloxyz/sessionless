@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { getDatabase } from '../db/connection.js';
+import { buildAnalyticsReport } from '../analytics/engine.js';
 
 const VALID_SESSION_SQL = `NOT (
   session_id = 'unknown'
@@ -11,6 +12,10 @@ const VALID_SESSION_SQL = `NOT (
 )`;
 
 export function registerAnalyticsRoutes(app: FastifyInstance): void {
+  app.get('/api/analytics/report', async () => {
+    return buildAnalyticsReport();
+  });
+
   app.get('/api/analytics/spend-over-time', async (req) => {
     const q = req.query as Record<string, string>;
     const granularity = q.granularity || 'day';
