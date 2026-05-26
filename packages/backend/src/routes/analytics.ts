@@ -12,58 +12,68 @@ const VALID_SESSION_SQL = `NOT (
 )`;
 
 export function registerAnalyticsRoutes(app: FastifyInstance): void {
-  app.get('/api/analytics/report', async () => {
-    return buildAnalyticsReport();
-  });
-
-  app.get('/api/analytics/spend-over-time', async (req) => {
-    const q = req.query as Record<string, string>;
-    const granularity = q.granularity || 'day';
-    const cli = q.cli || null;
-    const dateFrom = q.dateFrom || null;
-    const dateTo = q.dateTo || null;
-
-    const db = getDatabase();
-    const fmt = granularity === 'month' ? '%Y-%m' : granularity === 'week' ? '%Y-%W' : '%Y-%m-%d';
-    const labelFmt = granularity === 'month' ? "strftime('%Y-%m', started_at)" :
-                     granularity === 'week' ? "strftime('%Y-%W', started_at)" :
-                     "date(started_at)";
-
-    let sql = `
-      SELECT
-        ${labelFmt} AS period,
-        COALESCE(SUM(total_cost_usd), 0) AS total_spend,
-        COALESCE(SUM((SELECT SUM(input_tokens + output_tokens) FROM usage_events WHERE session_fk = sessions.id)), 0) AS total_tokens,
-        COUNT(*) AS session_count
-      FROM sessions
-      WHERE ${VALID_SESSION_SQL} AND total_cost_usd IS NOT NULL
-    `;
-    const params: (string | number | null)[] = [];
-
-    if (cli) { sql += ` AND cli = ?`; params.push(cli); }
-    if (dateFrom) { sql += ` AND started_at >= ?`; params.push(dateFrom); }
-    if (dateTo) { sql += ` AND started_at <= ?`; params.push(dateTo); }
-
-    sql += ` GROUP BY period ORDER BY period`;
-
-    const results = db.exec(sql, params);
-    const points: { date: string; spend: number; tokens: number; sessions: number }[] = [];
-
-    if (results.length > 0 && results[0].values) {
-      for (const r of results[0].values) {
-        points.push({
-          date: r[0] as string,
-          spend: Number(r[1]) || 0,
-          tokens: Number(r[2]) || 0,
-          sessions: Number(r[3]) || 0,
-        });
-      }
+  app.get('/api/analytics/report', async (_req, reply) => {
+    try {
+      return buildAnalyticsReport();
+    } catch (error) {
+      reply.code(500);
+      return { error: { code: 'ANALYTICS_REPORT_FAILED', message: 'Failed to build analytics report', details: String(error) } };
     }
-
-    return { points };
   });
 
-  app.get('/api/analytics/tokens-over-time', async (req) => {
+  app.get('/api/analytics/spend-over-time', async (req, reply) => {
+    try {
+      const q = req.query as Record<string, string>;
+      const granularity = q.granularity || 'day';
+      const cli = q.cli || null;
+      const dateFrom = q.dateFrom || null;
+      const dateTo = q.dateTo || null;
+
+      const db = getDatabase();
+      const labelFmt = granularity === 'month' ? "strftime('%Y-%m', started_at)" :
+                       granularity === 'week' ? "strftime('%Y-%W', started_at)" :
+                       "date(started_at)";
+
+      let sql = `
+        SELECT
+          ${labelFmt} AS period,
+          COALESCE(SUM(total_cost_usd), 0) AS total_spend,
+          COALESCE(SUM((SELECT SUM(input_tokens + output_tokens) FROM usage_events WHERE session_fk = sessions.id)), 0) AS total_tokens,
+          COUNT(*) AS session_count
+        FROM sessions
+        WHERE ${VALID_SESSION_SQL} AND total_cost_usd IS NOT NULL
+      `;
+      const params: (string | number | null)[] = [];
+
+      if (cli) { sql += ` AND cli = ?`; params.push(cli); }
+      if (dateFrom) { sql += ` AND started_at >= ?`; params.push(dateFrom); }
+      if (dateTo) { sql += ` AND started_at <= ?`; params.push(dateTo); }
+
+      sql += ` GROUP BY period ORDER BY period`;
+
+      const results = db.exec(sql, params);
+      const points: { date: string; spend: number; tokens: number; sessions: number }[] = [];
+
+      if (results.length > 0 && results[0].values) {
+        for (const r of results[0].values) {
+          points.push({
+            date: r[0] as string,
+            spend: Number(r[1]) || 0,
+            tokens: Number(r[2]) || 0,
+            sessions: Number(r[3]) || 0,
+          });
+        }
+      }
+
+      return { points };
+    } catch (error) {
+      reply.code(500);
+      return { error: { code: 'SPEND_TIMELINE_FAILED', message: 'Failed to load spend timeline', details: String(error) } };
+    }
+  });
+
+  app.get('/api/analytics/tokens-over-time', async (req, reply) => {
+    try {
     const q = req.query as Record<string, string>;
     const cli = q.cli || null;
     const dateFrom = q.dateFrom || null;
@@ -106,9 +116,14 @@ export function registerAnalyticsRoutes(app: FastifyInstance): void {
     }
 
     return { points };
+    } catch (error) {
+      reply.code(500);
+      return { error: { code: 'TOKENS_TIMELINE_FAILED', message: 'Failed to load token timeline', details: String(error) } };
+    }
   });
 
-  app.get('/api/analytics/breakdown', async (req) => {
+  app.get('/api/analytics/breakdown', async (req, reply) => {
+    try {
     const q = req.query as Record<string, string>;
     const dimension = q.dimension || 'cli';
     const metric = q.metric || 'cost';
@@ -147,5 +162,9 @@ export function registerAnalyticsRoutes(app: FastifyInstance): void {
     }
 
     return { breakdown };
+    } catch (error) {
+      reply.code(500);
+      return { error: { code: 'BREAKDOWN_FAILED', message: 'Failed to load analytics breakdown', details: String(error) } };
+    }
   });
 }

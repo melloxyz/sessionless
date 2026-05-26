@@ -1,6 +1,6 @@
 import { getDatabase, saveDatabase } from '../db/connection.js';
 import { registry } from '../adapters/registry.js';
-import type { RawSession } from '../adapters/types.js';
+import type { RawSession, RawModelUsage } from '../adapters/types.js';
 import { execSync } from 'node:child_process';
 
 function normalizePath(p: string | null): string | null {
@@ -127,6 +127,66 @@ function deleteInvalidSessions(): void {
   `);
 }
 
+function persistModelUsage(sessionPk: number, raw: RawSession): void {
+  const db = getDatabase();
+  db.run(`DELETE FROM session_model_usage WHERE session_fk = ?`, [sessionPk]);
+
+  const rows = raw.modelUsage ?? aggregateModelUsage(raw);
+  for (const row of rows) {
+    db.run(
+      `INSERT INTO session_model_usage (
+        session_fk, provider, model, message_count, input_tokens, output_tokens,
+        reasoning_tokens, cache_read_tokens, cache_write_tokens, tool_calls_count, total_cost_usd
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        sessionPk,
+        row.provider,
+        row.model,
+        row.messageCount,
+        row.inputTokens,
+        row.outputTokens,
+        row.reasoningTokens,
+        row.cacheReadTokens,
+        row.cacheWriteTokens,
+        row.toolCallsCount,
+        row.totalCostUsd,
+      ],
+    );
+  }
+}
+
+function aggregateModelUsage(raw: RawSession): RawModelUsage[] {
+  const provider = raw.provider || 'unknown';
+  const model = raw.model || 'unknown';
+  const usage = raw.usageEvents.reduce(
+    (sum, event) => ({
+      input: sum.input + (event.inputTokens ?? 0),
+      output: sum.output + (event.outputTokens ?? 0),
+      reasoning: sum.reasoning + (event.reasoningTokens ?? 0),
+      cacheRead: sum.cacheRead + (event.cacheReadTokens ?? 0),
+      cacheWrite: sum.cacheWrite + (event.cacheWriteTokens ?? 0),
+      toolCalls: sum.toolCalls + (event.toolCallsCount ?? 0),
+    }),
+    { input: 0, output: 0, reasoning: 0, cacheRead: 0, cacheWrite: 0, toolCalls: 0 },
+  );
+
+  const cost = raw.totalCostUsd ?? 0;
+  if (usage.input === 0 && usage.output === 0 && usage.toolCalls === 0 && cost === 0) return [];
+
+  return [{
+    provider,
+    model,
+    messageCount: raw.messages.length,
+    inputTokens: usage.input,
+    outputTokens: usage.output,
+    reasoningTokens: usage.reasoning,
+    cacheReadTokens: usage.cacheRead,
+    cacheWriteTokens: usage.cacheWrite,
+    toolCallsCount: usage.toolCalls,
+    totalCostUsd: cost,
+  }];
+}
+
 function upsertSession(raw: RawSession): 'new' | 'updated' | 'skipped' {
   const db = getDatabase();
 
@@ -163,7 +223,9 @@ function upsertSession(raw: RawSession): 'new' | 'updated' | 'skipped' {
     );
     db.run(`DELETE FROM usage_events WHERE session_fk = ?`, [sessionPk]);
     db.run(`DELETE FROM messages WHERE session_fk = ?`, [sessionPk]);
+    db.run(`DELETE FROM session_model_usage WHERE session_fk = ?`, [sessionPk]);
     insertEvents(db, sessionPk, raw);
+    persistModelUsage(sessionPk, raw);
     return 'updated';
   }
 
@@ -189,6 +251,7 @@ function upsertSession(raw: RawSession): 'new' | 'updated' | 'skipped' {
   const lastId = db.exec(`SELECT last_insert_rowid()`);
   sessionPk = Number(lastId[0].values[0][0]);
   insertEvents(db, sessionPk, raw);
+  persistModelUsage(sessionPk, raw);
   return 'new';
 }
 

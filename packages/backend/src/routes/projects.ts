@@ -3,35 +3,40 @@ import { existsSync } from 'node:fs';
 import { getDatabase } from '../db/connection.js';
 
 export function registerProjectRoutes(app: FastifyInstance): void {
-  app.get('/api/projects', async (req) => {
-    const q = req.query as Record<string, string>;
-    const db = getDatabase();
-    const search = q.search || null;
+  app.get('/api/projects', async (req, reply) => {
+    try {
+      const q = req.query as Record<string, string>;
+      const db = getDatabase();
+      const search = q.search || null;
 
-    let sql = `SELECT * FROM projects`;
-    const params: (string | number | null)[] = [];
-    if (search) {
-      sql += ` WHERE path LIKE ?`;
-      params.push(`%${search}%`);
-    }
-    sql += ` ORDER BY total_cost DESC`;
-
-    const results = db.exec(sql, params);
-    const data: Record<string, unknown>[] = [];
-
-    if (results.length > 0 && results[0].values && results[0].columns) {
-      const cols = results[0].columns;
-      for (const row of results[0].values) {
-        const obj: Record<string, unknown> = {};
-        for (let i = 0; i < cols.length; i++) {
-          obj[cols[i]] = row[i];
-        }
-        obj.exists = typeof obj.path === 'string' && obj.path !== 'unknown' ? existsSync(obj.path) : false;
-        data.push(obj);
+      let sql = `SELECT * FROM projects`;
+      const params: (string | number | null)[] = [];
+      if (search) {
+        sql += ` WHERE path LIKE ?`;
+        params.push(`%${search}%`);
       }
-    }
+      sql += ` ORDER BY total_cost DESC`;
 
-    return { data };
+      const results = db.exec(sql, params);
+      const data: Record<string, unknown>[] = [];
+
+      if (results.length > 0 && results[0].values && results[0].columns) {
+        const cols = results[0].columns;
+        for (const row of results[0].values) {
+          const obj: Record<string, unknown> = {};
+          for (let i = 0; i < cols.length; i++) {
+            obj[cols[i]] = row[i];
+          }
+          obj.exists = typeof obj.path === 'string' && obj.path !== 'unknown' ? existsSync(obj.path) : false;
+          data.push(obj);
+        }
+      }
+
+      return { data };
+    } catch (error) {
+      reply.code(500);
+      return { error: { code: 'PROJECTS_FAILED', message: 'Failed to load projects', details: String(error) } };
+    }
   });
 
   app.get('/api/projects/:id', async (req, reply) => {
@@ -41,7 +46,7 @@ export function registerProjectRoutes(app: FastifyInstance): void {
     const projResult = db.exec(`SELECT * FROM projects WHERE id = ?`, [Number(id)]);
     if (projResult.length === 0 || !projResult[0].values || projResult[0].values.length === 0) {
       reply.code(404);
-      return { error: 'Project not found' };
+      return { error: { code: 'PROJECT_NOT_FOUND', message: 'Project not found' } };
     }
 
     const proj: Record<string, unknown> = {};

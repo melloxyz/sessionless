@@ -31,7 +31,11 @@ async function main() {
   registerModelRoutes(app);
 
   app.get('/api/ingest/status', async () => {
-    return getLastStatus() ?? { message: 'No ingestion run yet' };
+    const status = getLastStatus();
+    if (!status) return { message: 'No ingestion run yet' };
+    return status.errors.length > 0
+      ? { ...status, error: { code: 'INGESTION_WARNINGS', message: 'Ingestion completed with warnings' } }
+      : status;
   });
 
   app.post('/api/ingest', async () => {

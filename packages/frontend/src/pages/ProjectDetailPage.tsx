@@ -7,12 +7,13 @@ import { useApi } from '../hooks/useApi.js';
 import { formatCurrency, formatDate } from '../lib/format.js';
 import { Card, CardContent } from '../components/ui/Card.js';
 import { Badge } from '../components/ui/Badge.js';
+import { ErrorState } from '../components/ui/ErrorState.js';
 
 const COLORS = ['#6366f1', '#818cf8', '#a78bfa', '#22c55e', '#eab308', '#ef4444'];
 
 export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { data, loading } = useApi<{
+  const { data, loading, error, refetch } = useApi<{
     project: Record<string, unknown>;
     sessions: Record<string, unknown>[];
     providerBreakdown: Record<string, unknown>[];
@@ -21,6 +22,7 @@ export function ProjectDetailPage() {
   }>(`/api/projects/${id}`);
 
   if (loading) return <div className="p-6 space-y-4"><div className="h-6 w-32 animate-pulse rounded bg-bg-elevated" /></div>;
+  if (error) return <div className="p-6"><ErrorState title="Project failed to load" message={error.message} code={error.code} details={error.details} onRetry={refetch} /></div>;
   if (!data?.project) return <div className="p-6 text-text-tertiary">Project not found</div>;
 
   const p = data.project;

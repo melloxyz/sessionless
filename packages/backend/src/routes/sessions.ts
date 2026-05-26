@@ -11,9 +11,10 @@ const VALID_SESSION_SQL = `NOT (
 )`;
 
 export function registerSessionRoutes(app: FastifyInstance): void {
-  app.get('/api/sessions', async (req) => {
-    const q = req.query as Record<string, string>;
-    const db = getDatabase();
+  app.get('/api/sessions', async (req, reply) => {
+    try {
+      const q = req.query as Record<string, string>;
+      const db = getDatabase();
 
     const cli = q.cli || null;
     const provider = q.provider || null;
@@ -43,8 +44,8 @@ export function registerSessionRoutes(app: FastifyInstance): void {
     if (confidence) { countSql += ` AND source_confidence = ?`; countParams.push(confidence); }
     if (search) { countSql += ` AND (session_id LIKE ? OR project_path LIKE ?)`; countParams.push(`%${search}%`, `%${search}%`); }
 
-    const countResult = db.exec(countSql, countParams);
-    const total = countResult[0]?.values?.[0]?.[0] as number ?? 0;
+      const countResult = db.exec(countSql, countParams);
+      const total = countResult[0]?.values?.[0]?.[0] as number ?? 0;
 
     // Data query
     let dataSql = `
@@ -65,74 +66,98 @@ export function registerSessionRoutes(app: FastifyInstance): void {
     dataSql += ` ORDER BY ${sortCol} ${sortOrder} LIMIT ? OFFSET ?`;
     dataParams.push(limit, (page - 1) * limit);
 
-    const dataResult = db.exec(dataSql, dataParams);
-    const data: Record<string, unknown>[] = [];
+      const dataResult = db.exec(dataSql, dataParams);
+      const data: Record<string, unknown>[] = [];
 
-    if (dataResult.length > 0 && dataResult[0].values) {
-      const cols = dataResult[0].columns;
-      for (const row of dataResult[0].values) {
-        const obj: Record<string, unknown> = {};
-        for (let i = 0; i < cols.length; i++) {
-          obj[cols[i]] = row[i];
+      if (dataResult.length > 0 && dataResult[0].values) {
+        const cols = dataResult[0].columns;
+        for (const row of dataResult[0].values) {
+          const obj: Record<string, unknown> = {};
+          for (let i = 0; i < cols.length; i++) {
+            obj[cols[i]] = row[i];
+          }
+          data.push(obj);
         }
-        data.push(obj);
       }
-    }
 
-    return { data, total, page, limit };
+      return { data, total, page, limit };
+    } catch (error) {
+      reply.code(500);
+      return { error: { code: 'SESSIONS_LIST_FAILED', message: 'Failed to load sessions', details: String(error) } };
+    }
   });
 
   app.get('/api/sessions/:id', async (req, reply) => {
-    const { id } = req.params as { id: string };
-    const db = getDatabase();
+    try {
+      const { id } = req.params as { id: string };
+      const db = getDatabase();
 
-    const sessionResult = db.exec(
-      `SELECT * FROM sessions WHERE id = ?`, [Number(id)],
-    );
-    if (sessionResult.length === 0 || !sessionResult[0].values || sessionResult[0].values.length === 0) {
-      reply.code(404);
-      return { error: 'Session not found' };
-    }
-
-    const sessionCols = sessionResult[0].columns;
-    const sessionRow = sessionResult[0].values[0];
-    const session: Record<string, unknown> = {};
-    for (let i = 0; i < sessionCols.length; i++) {
-      session[sessionCols[i]] = sessionRow[i];
-    }
-
-    const msgResult = db.exec(
-      `SELECT id, role, content, timestamp FROM messages WHERE session_fk = ? ORDER BY timestamp`,
-      [Number(id)],
-    );
-    const messages: Record<string, unknown>[] = [];
-    if (msgResult.length > 0 && msgResult[0].values && msgResult[0].columns) {
-      const cols = msgResult[0].columns;
-      for (const row of msgResult[0].values) {
-        const obj: Record<string, unknown> = {};
-        for (let i = 0; i < cols.length; i++) {
-          obj[cols[i]] = row[i];
-        }
-        messages.push(obj);
+      const sessionResult = db.exec(`SELECT * FROM sessions WHERE id = ?`, [Number(id)]);
+      if (sessionResult.length === 0 || !sessionResult[0].values || sessionResult[0].values.length === 0) {
+        reply.code(404);
+        return { error: { code: 'SESSION_NOT_FOUND', message: 'Session not found' } };
       }
-    }
 
-    const usageResult = db.exec(
-      `SELECT * FROM usage_events WHERE session_fk = ? ORDER BY timestamp`,
-      [Number(id)],
-    );
-    const usageEvents: Record<string, unknown>[] = [];
-    if (usageResult.length > 0 && usageResult[0].values && usageResult[0].columns) {
-      const cols = usageResult[0].columns;
-      for (const row of usageResult[0].values) {
-        const obj: Record<string, unknown> = {};
-        for (let i = 0; i < cols.length; i++) {
-          obj[cols[i]] = row[i];
-        }
-        usageEvents.push(obj);
+      const sessionCols = sessionResult[0].columns;
+      const sessionRow = sessionResult[0].values[0];
+      const session: Record<string, unknown> = {};
+      for (let i = 0; i < sessionCols.length; i++) {
+        session[sessionCols[i]] = sessionRow[i];
       }
-    }
 
-    return { ...session, messages, usageEvents };
+      const msgResult = db.exec(
+        `SELECT id, role, content, timestamp FROM messages WHERE session_fk = ? ORDER BY timestamp`,
+        [Number(id)],
+      );
+      const messages: Record<string, unknown>[] = [];
+      if (msgResult.length > 0 && msgResult[0].values && msgResult[0].columns) {
+        const cols = msgResult[0].columns;
+        for (const row of msgResult[0].values) {
+          const obj: Record<string, unknown> = {};
+          for (let i = 0; i < cols.length; i++) {
+            obj[cols[i]] = row[i];
+          }
+          messages.push(obj);
+        }
+      }
+
+      const usageResult = db.exec(
+        `SELECT * FROM usage_events WHERE session_fk = ? ORDER BY timestamp`,
+        [Number(id)],
+      );
+      const usageEvents: Record<string, unknown>[] = [];
+      if (usageResult.length > 0 && usageResult[0].values && usageResult[0].columns) {
+        const cols = usageResult[0].columns;
+        for (const row of usageResult[0].values) {
+          const obj: Record<string, unknown> = {};
+          for (let i = 0; i < cols.length; i++) {
+            obj[cols[i]] = row[i];
+          }
+          usageEvents.push(obj);
+        }
+      }
+
+      const modelUsageResult = db.exec(
+        `SELECT provider, model, message_count, input_tokens, output_tokens, reasoning_tokens, cache_read_tokens, cache_write_tokens, tool_calls_count, total_cost_usd
+         FROM session_model_usage WHERE session_fk = ? ORDER BY total_cost_usd DESC, message_count DESC`,
+        [Number(id)],
+      );
+      const modelUsage: Record<string, unknown>[] = [];
+      if (modelUsageResult.length > 0 && modelUsageResult[0].values && modelUsageResult[0].columns) {
+        const cols = modelUsageResult[0].columns;
+        for (const row of modelUsageResult[0].values) {
+          const obj: Record<string, unknown> = {};
+          for (let i = 0; i < cols.length; i++) {
+            obj[cols[i]] = row[i];
+          }
+          modelUsage.push(obj);
+        }
+      }
+
+      return { ...session, messages, usageEvents, modelUsage };
+    } catch (error) {
+      reply.code(500);
+      return { error: { code: 'SESSION_DETAIL_FAILED', message: 'Failed to load session detail', details: String(error) } };
+    }
   });
 }

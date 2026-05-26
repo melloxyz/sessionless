@@ -4,6 +4,7 @@ import { useTheme } from '../components/theme/ThemeProvider.js';
 import { Badge } from '../components/ui/Badge.js';
 import { Button } from '../components/ui/Button.js';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card.js';
+import { ErrorState } from '../components/ui/ErrorState.js';
 import { useApi } from '../hooks/useApi.js';
 import { formatCurrency } from '../lib/format.js';
 
@@ -16,8 +17,8 @@ interface Overview {
 export function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const { locale, setLocale, t } = useI18n();
-  const { data: overview } = useApi<Overview>('/api/overview');
-  const { data: ingestStatus, refetch } = useApi<Record<string, unknown>>('/api/ingest/status');
+  const { data: overview, error: overviewError } = useApi<Overview>('/api/overview');
+  const { data: ingestStatus, error: ingestError, refetch } = useApi<Record<string, unknown>>('/api/ingest/status');
 
   async function runIngestion() {
     await fetch('/api/ingest', { method: 'POST' });
@@ -84,7 +85,11 @@ export function SettingsPage() {
             <Button onClick={runIngestion}><RefreshCw className="h-4 w-4" /> Run ingestion</Button>
           </CardHeader>
           <CardContent>
-            <pre className="max-h-64 overflow-auto rounded-2xl border border-border bg-surface-muted p-4 text-xs text-muted-foreground">{JSON.stringify(ingestStatus ?? {}, null, 2)}</pre>
+            {ingestError ? (
+              <ErrorState title="Ingestion status failed" message={ingestError.message} code={ingestError.code} details={ingestError.details} onRetry={refetch} />
+            ) : (
+              <pre className="max-h-64 overflow-auto rounded-2xl border border-border bg-surface-muted p-4 text-xs text-muted-foreground">{JSON.stringify(ingestStatus ?? {}, null, 2)}</pre>
+            )}
           </CardContent>
         </Card>
       </section>
@@ -93,6 +98,7 @@ export function SettingsPage() {
         <Card>
           <CardHeader><CardTitle>Workspace Summary</CardTitle></CardHeader>
           <CardContent className="space-y-4">
+            {overviewError && <ErrorState title="Overview failed to load" message={overviewError.message} code={overviewError.code} details={overviewError.details} onRetry={refetch} />}
             <SummaryRow label="Sessions" value={String(overview?.sessionCount ?? 0)} />
             <SummaryRow label="Total spend" value={formatCurrency(overview?.totalSpend)} />
             <SummaryRow label="Top CLI" value={overview?.mostUsedCli ?? '—'} />

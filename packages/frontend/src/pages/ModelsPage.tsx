@@ -1,5 +1,6 @@
 import { Badge } from '../components/ui/Badge.js';
 import { Card, CardContent } from '../components/ui/Card.js';
+import { ErrorState } from '../components/ui/ErrorState.js';
 import { useApi } from '../hooks/useApi.js';
 
 interface ModelRow {
@@ -12,7 +13,15 @@ interface ModelRow {
 }
 
 export function ModelsPage() {
-  const { data, loading } = useApi<{ data: ModelRow[] }>('/api/models');
+  const { data, loading, error, refetch } = useApi<{ data: ModelRow[] }>('/api/models');
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <ErrorState title="Models failed to load" message={error.message} code={error.code} details={error.details} onRetry={refetch} />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">

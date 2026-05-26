@@ -18,6 +18,7 @@ import { useApi } from '../hooks/useApi.js';
 import { formatCurrency, formatTokens } from '../lib/format.js';
 import { Badge } from '../components/ui/Badge.js';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card.js';
+import { ErrorState } from '../components/ui/ErrorState.js';
 import { Select } from '../components/ui/Select.js';
 
 const COLORS = ['#6366f1', '#818cf8', '#a78bfa', '#22c55e', '#eab308', '#ef4444', '#ec4899'];
@@ -79,24 +80,47 @@ interface AnalyticsReport {
     filesModifiedSupported: boolean;
     notes: string[];
   };
+  modelUsageBreakdown: {
+    provider: string;
+    model: string;
+    messageCount: number;
+    inputTokens: number;
+    outputTokens: number;
+    reasoningTokens: number;
+    cacheReadTokens: number;
+    cacheWriteTokens: number;
+    toolCallsCount: number;
+    totalCostUsd: number;
+  }[];
 }
 
 export function AnalyticsPage() {
   const [dimension, setDimension] = useState('model');
   const [metric, setMetric] = useState('cost');
 
-  const { data: report } = useApi<AnalyticsReport>('/api/analytics/report');
-  const { data: spendData } = useApi<{ points: { date: string; spend: number; tokens: number }[] }>('/api/analytics/spend-over-time?granularity=week');
-  const { data: tokenData } = useApi<{ points: { date: string; inputTokens: number; outputTokens: number }[] }>('/api/analytics/tokens-over-time');
-  const { data: breakdownData } = useApi<{ breakdown: { label: string; value: number; percentage: number }[] }>(`/api/analytics/breakdown?dimension=${dimension}&metric=${metric}`);
+  const { data: report, error: reportError } = useApi<AnalyticsReport>('/api/analytics/report');
+  const { data: spendData, error: spendError } = useApi<{ points: { date: string; spend: number; tokens: number }[] }>('/api/analytics/spend-over-time?granularity=week');
+  const { data: tokenData, error: tokenError } = useApi<{ points: { date: string; inputTokens: number; outputTokens: number }[] }>('/api/analytics/tokens-over-time');
+  const { data: breakdownData, error: breakdownError } = useApi<{ breakdown: { label: string; value: number; percentage: number }[] }>(`/api/analytics/breakdown?dimension=${dimension}&metric=${metric}`);
 
   const breakdown = useMemo(() => (breakdownData?.breakdown ?? []).filter((d) => d.value > 0), [breakdownData]);
   const insights = report?.insights ?? [];
   const anomalies = report?.anomalies ?? [];
   const productivity = report?.productivity;
+  const modelUsage = report?.modelUsageBreakdown ?? [];
 
   return (
     <div className="space-y-6 p-6">
+      {(reportError || spendError || tokenError || breakdownError) && (
+        <ErrorState
+          title="Analytics failed to load"
+          message={reportError?.message || spendError?.message || tokenError?.message || breakdownError?.message || 'One or more analytics requests failed.'}
+          code={reportError?.code || spendError?.code || tokenError?.code || breakdownError?.code}
+          details={reportError?.details || spendError?.details || tokenError?.details || breakdownError?.details}
+          onRetry={() => window.location.reload()}
+        />
+      )}
+
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-lg font-semibold text-foreground">Analytics</h1>
@@ -310,6 +334,50 @@ export function AnalyticsPage() {
                 </div>
               </div>
             )) : <EmptyState title="No productivity data yet" description="Tool call efficiency will appear after the next ingest cycle." icon={Sparkles} />}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>Multi-Model Usage</CardTitle>
+              <p className="mt-1 text-xs text-subtle-foreground">Cost and tokens by provider/model across sessions</p>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {modelUsage.length > 0 ? modelUsage.slice(0, 8).map((item) => (
+              <div key={`${item.provider}/${item.model}`} className="rounded-2xl border border-border bg-surface-elevated p-4 text-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="font-medium text-foreground">{item.provider}/{item.model}</div>
+                    <div className="text-xs text-subtle-foreground">{item.messageCount} messages · {item.toolCallsCount} tool calls</div>
+                  </div>
+                  <Badge variant="neutral">{formatCurrency(item.totalCostUsd)}</Badge>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-subtle-foreground md:grid-cols-4">
+                  <MetricChip label="Input" value={formatTokens(item.inputTokens)} />
+                  <MetricChip label="Output" value={formatTokens(item.outputTokens)} />
+                  <MetricChip label="Reasoning" value={formatTokens(item.reasoningTokens)} />
+                  <MetricChip label="Tools" value={String(item.toolCallsCount)} />
+                </div>
+              </div>
+            )) : <EmptyState title="No multi-model data yet" description="OpenCode sessions will populate this after the next ingest cycle." icon={Sparkles} />}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>Multi-Model Notes</CardTitle>
+              <p className="mt-1 text-xs text-subtle-foreground">What we can and cannot infer right now</p>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-subtle-foreground">
+            <div className="rounded-2xl border border-border bg-surface-elevated p-4">OpenCode multi-model usage is persisted per provider/model and aggregated into the analytics report.</div>
+            <div className="rounded-2xl border border-border bg-surface-elevated p-4">Claude and Codex still appear as single-model sessions unless the source provides more than one model entry.</div>
+            <div className="rounded-2xl border border-border bg-surface-elevated p-4">`files modified per session` stays deferred until a real adapter source exists.</div>
           </CardContent>
         </Card>
       </div>

@@ -40,6 +40,20 @@ export interface AnalyticsReport {
   anomalies: AnalyticsAnomaly[];
   trend: { date: string; spend: number }[];
   productivity: ProductivityReport;
+  modelUsageBreakdown: ModelUsageSummary[];
+}
+
+export interface ModelUsageSummary {
+  provider: string;
+  model: string;
+  messageCount: number;
+  inputTokens: number;
+  outputTokens: number;
+  reasoningTokens: number;
+  cacheReadTokens: number;
+  cacheWriteTokens: number;
+  toolCallsCount: number;
+  totalCostUsd: number;
 }
 
 export interface ProductivitySession {
@@ -138,6 +152,7 @@ export function buildAnalyticsReport(): AnalyticsReport {
   const usageAggregates = queryUsageAggregates(db);
   const projectSummaries = queryProjectSummaries(db);
   const modelSummaries = queryModelSummaries(db);
+  const modelUsageBreakdown = queryModelUsageBreakdown(db);
   const dailyTrend = queryDailyTrend(db);
 
   const sessionById = new Map<number, SessionRow>(sessions.map((session) => [session.id, session]));
@@ -373,6 +388,7 @@ export function buildAnalyticsReport(): AnalyticsReport {
         'Tool-call and token-based efficiency is now calculated across Codex, Claude and OpenCode sessions.',
       ],
     },
+    modelUsageBreakdown,
   };
 }
 
@@ -441,6 +457,25 @@ function queryModelSummaries(db: ReturnType<typeof getDatabase>): ModelSummary[]
   );
 
   return mapRows<ModelSummary>(result);
+}
+
+function queryModelUsageBreakdown(db: ReturnType<typeof getDatabase>): ModelUsageSummary[] {
+  const result = db.exec(
+    `SELECT provider, model,
+            COALESCE(SUM(message_count), 0) AS messageCount,
+            COALESCE(SUM(input_tokens), 0) AS inputTokens,
+            COALESCE(SUM(output_tokens), 0) AS outputTokens,
+            COALESCE(SUM(reasoning_tokens), 0) AS reasoningTokens,
+            COALESCE(SUM(cache_read_tokens), 0) AS cacheReadTokens,
+            COALESCE(SUM(cache_write_tokens), 0) AS cacheWriteTokens,
+            COALESCE(SUM(tool_calls_count), 0) AS toolCallsCount,
+            COALESCE(SUM(total_cost_usd), 0) AS totalCostUsd
+     FROM session_model_usage
+     GROUP BY provider, model
+     ORDER BY totalCostUsd DESC, messageCount DESC`,
+  );
+
+  return mapRows<ModelUsageSummary>(result);
 }
 
 function queryDailyTrend(db: ReturnType<typeof getDatabase>): { date: string; spend: number }[] {

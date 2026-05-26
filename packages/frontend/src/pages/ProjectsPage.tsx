@@ -5,6 +5,7 @@ import { Badge } from '../components/ui/Badge.js';
 import { Card, CardContent } from '../components/ui/Card.js';
 import { Input } from '../components/ui/Input.js';
 import { Select } from '../components/ui/Select.js';
+import { ErrorState } from '../components/ui/ErrorState.js';
 import { useApi } from '../hooks/useApi.js';
 import { basename, compactPath, formatCurrency } from '../lib/format.js';
 
@@ -24,7 +25,15 @@ export function ProjectsPage() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<StatusFilter>('all');
   const [sort, setSort] = useState<SortMode>('cost');
-  const { data, loading } = useApi<{ data: Project[] }>('/api/projects');
+  const { data, loading, error, refetch } = useApi<{ data: Project[] }>('/api/projects');
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <ErrorState title="Projects failed to load" message={error.message} code={error.code} details={error.details} onRetry={refetch} />
+      </div>
+    );
+  }
 
   const projects = useMemo(() => {
     const term = search.trim().toLowerCase();

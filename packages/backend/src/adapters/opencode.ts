@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
-import type { Adapter, Checkpoint, RawSession, RawMessage, RawUsageEvent } from './types.js';
+import type { Adapter, Checkpoint, RawSession, RawMessage, RawUsageEvent, RawModelUsage } from './types.js';
 import type { CliProvider, SourceConfidence } from '@aimeter/shared';
 
 const OPENCODE_DB = join(homedir(), '.local', 'share', 'opencode', 'opencode.db');
@@ -90,8 +90,8 @@ export function createOpencodeAdapter(): Adapter {
           `SELECT id, data, time_created FROM message WHERE session_id = ? ORDER BY time_created`,
           [sessionId],
         );
-
         const messages: RawMessage[] = [];
+        const modelUsage = new Map<string, RawModelUsage>();
         let totalInputTokens = 0;
         let totalOutputTokens = 0;
         let totalReasoningTokens = 0;
@@ -113,6 +113,8 @@ export function createOpencodeAdapter(): Adapter {
             try {
               const data = JSON.parse(dataJson);
               role = data.role ?? 'unknown';
+              const providerID = typeof data.providerID === 'string' ? data.providerID : null;
+              const modelID = typeof data.modelID === 'string' ? data.modelID : null;
               if (data.tokens) {
                 perMsgInput = data.tokens.input ?? 0;
                 perMsgOutput = data.tokens.output ?? 0;
@@ -121,6 +123,31 @@ export function createOpencodeAdapter(): Adapter {
                 totalReasoningTokens += data.tokens.reasoning ?? 0;
                 totalCacheReadTokens += data.tokens.cache?.read ?? 0;
                 totalCacheWriteTokens += data.tokens.cache?.write ?? 0;
+              }
+
+              if (providerID && modelID) {
+                const key = `${providerID}/${modelID}`;
+                const current = modelUsage.get(key) ?? {
+                  provider: providerID,
+                  model: modelID,
+                  messageCount: 0,
+                  inputTokens: 0,
+                  outputTokens: 0,
+                  reasoningTokens: 0,
+                  cacheReadTokens: 0,
+                  cacheWriteTokens: 0,
+                  toolCallsCount: 0,
+                  totalCostUsd: 0,
+                };
+                current.messageCount += 1;
+                current.inputTokens += Number(data.tokens?.input ?? 0) || 0;
+                current.outputTokens += Number(data.tokens?.output ?? 0) || 0;
+                current.reasoningTokens += Number(data.tokens?.reasoning ?? 0) || 0;
+                current.cacheReadTokens += Number(data.tokens?.cache?.read ?? 0) || 0;
+                current.cacheWriteTokens += Number(data.tokens?.cache?.write ?? 0) || 0;
+                current.totalCostUsd += Number(data.cost ?? 0) || 0;
+                if (data.finish === 'tool-calls') current.toolCallsCount += 1;
+                modelUsage.set(key, current);
               }
             } catch { /* bad JSON */ }
 
@@ -230,6 +257,7 @@ export function createOpencodeAdapter(): Adapter {
           sourceConfidence: confidence,
           messages,
           usageEvents,
+          modelUsage: [...modelUsage.values()],
         }];
       } finally { db.close(); }
     },

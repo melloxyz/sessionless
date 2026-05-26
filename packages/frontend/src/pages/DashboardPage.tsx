@@ -18,6 +18,7 @@ import { Badge } from '../components/ui/Badge.js';
 import { Button } from '../components/ui/Button.js';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card.js';
 import { TokenUsageBar } from '../components/session/TokenUsageBar.js';
+import { ErrorState } from '../components/ui/ErrorState.js';
 import { useApi } from '../hooks/useApi.js';
 import { CLI_COLORS, chartColor } from '../lib/chart-colors.js';
 import { basename, compactPath, formatCurrency, formatDate, formatDuration, formatRelativeTime, formatTokens } from '../lib/format.js';
@@ -71,14 +72,14 @@ const tooltipStyle = {
 
 export function DashboardPage() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const { data: overview, loading } = useApi<Overview>('/api/overview');
-  const { data: spendData } = useApi<{ points: { date: string; spend: number; tokens: number; sessions: number }[] }>('/api/analytics/spend-over-time');
-  const { data: tokenData } = useApi<{ points: { date: string; inputTokens: number; outputTokens: number; cacheReadTokens?: number; cacheWriteTokens?: number }[] }>('/api/analytics/tokens-over-time');
-  const { data: cliBreakdown } = useApi<{ breakdown: { label: string; value: number; percentage: number }[] }>('/api/analytics/breakdown?dimension=cli&metric=cost');
-  const { data: modelBreakdown } = useApi<{ breakdown: { label: string; value: number; percentage: number }[] }>('/api/analytics/breakdown?dimension=model&metric=cost');
-  const { data: recentSessions } = useApi<{ data: SessionRow[]; total: number }>('/api/sessions?limit=9&sortBy=started_at&sortOrder=desc');
-  const { data: allSessions } = useApi<{ data: SessionRow[]; total: number }>('/api/sessions?limit=500&sortBy=started_at&sortOrder=desc');
-  const { data: selectedSession } = useApi<SessionDetail>(selectedId ? `/api/sessions/${selectedId}` : null, { immediate: Boolean(selectedId) });
+  const { data: overview, loading: overviewLoading, error: overviewError } = useApi<Overview>('/api/overview');
+  const { data: spendData, error: spendError } = useApi<{ points: { date: string; spend: number; tokens: number; sessions: number }[] }>('/api/analytics/spend-over-time');
+  const { data: tokenData, error: tokenError } = useApi<{ points: { date: string; inputTokens: number; outputTokens: number; cacheReadTokens?: number; cacheWriteTokens?: number }[] }>('/api/analytics/tokens-over-time');
+  const { data: cliBreakdown, error: cliError } = useApi<{ breakdown: { label: string; value: number; percentage: number }[] }>('/api/analytics/breakdown?dimension=cli&metric=cost');
+  const { data: modelBreakdown, error: modelError } = useApi<{ breakdown: { label: string; value: number; percentage: number }[] }>('/api/analytics/breakdown?dimension=model&metric=cost');
+  const { data: recentSessions, error: recentSessionsError } = useApi<{ data: SessionRow[]; total: number }>('/api/sessions?limit=9&sortBy=started_at&sortOrder=desc');
+  const { data: allSessions, error: allSessionsError } = useApi<{ data: SessionRow[]; total: number }>('/api/sessions?limit=500&sortBy=started_at&sortOrder=desc');
+  const { data: selectedSession, error: selectedSessionError } = useApi<SessionDetail>(selectedId ? `/api/sessions/${selectedId}` : null, { immediate: Boolean(selectedId) });
 
   useEffect(() => {
     if (!selectedId && recentSessions?.data?.[0]) setSelectedId(recentSessions.data[0].id);
@@ -105,15 +106,28 @@ export function DashboardPage() {
     );
   }, [selectedSession]);
 
+  const anyError = overviewError || spendError || tokenError || cliError || modelError || recentSessionsError || allSessionsError || selectedSessionError;
+
   return (
     <div className="grid min-h-full grid-cols-1 gap-6 p-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+      {anyError && (
+        <section className="xl:col-span-2">
+          <ErrorState
+            title="Dashboard requests failed"
+            message={anyError.message}
+            code={anyError.code}
+            details={anyError.details}
+            onRetry={() => window.location.reload()}
+          />
+        </section>
+      )}
       <section className="xl:col-span-2">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
-          <StatCard label="Total Spend" value={formatCurrency(overview?.totalSpend)} icon={WalletCards} loading={loading} change="+ live" changeTone="success" sparkline />
-          <StatCard label="Total Tokens" value={formatTokens(totalTokens)} icon={Database} loading={loading} change="all sources" changeTone="info" sparkline />
-          <StatCard label="Total Sessions" value={String(overview?.sessionCount ?? 0)} icon={MessageSquare} loading={loading} change={`${formatTokens(totalMessages)} messages`} changeTone="info" sparkline />
-          <StatCard label="Avg. Cost / Session" value={formatCurrency(overview?.averageSessionCost)} icon={Coins} loading={loading} change={overview?.mostUsedCli ?? '—'} changeTone="warning" sparkline />
-          <StatCard label="Total Duration" value={formatDuration(totalDurationMs)} icon={Timer} loading={loading} change="indexed" changeTone="success" sparkline />
+          <StatCard label="Total Spend" value={formatCurrency(overview?.totalSpend)} icon={WalletCards} loading={overviewLoading} change="+ live" changeTone="success" sparkline />
+          <StatCard label="Total Tokens" value={formatTokens(totalTokens)} icon={Database} loading={overviewLoading} change="all sources" changeTone="info" sparkline />
+          <StatCard label="Total Sessions" value={String(overview?.sessionCount ?? 0)} icon={MessageSquare} loading={overviewLoading} change={`${formatTokens(totalMessages)} messages`} changeTone="info" sparkline />
+          <StatCard label="Avg. Cost / Session" value={formatCurrency(overview?.averageSessionCost)} icon={Coins} loading={overviewLoading} change={overview?.mostUsedCli ?? '—'} changeTone="warning" sparkline />
+          <StatCard label="Total Duration" value={formatDuration(totalDurationMs)} icon={Timer} loading={overviewLoading} change="indexed" changeTone="success" sparkline />
         </div>
       </section>
 
@@ -219,31 +233,43 @@ export function DashboardPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 rounded-2xl border border-border bg-surface-muted p-2 text-center">
-              <MiniMetric label="Cost" value={formatCurrency(selectedSession?.total_cost_usd)} />
-              <MiniMetric label="Tokens" value={formatTokens(selectedUsage.input + selectedUsage.output)} />
-              <MiniMetric label="Tools" value={String(selectedSession?.tool_call_count ?? 0)} />
-            </div>
+            {selectedSessionError ? (
+              <ErrorState
+                title={selectedSessionError.status === 404 ? 'Session not found' : 'Unable to load session'}
+                message={selectedSessionError.message}
+                code={selectedSessionError.code}
+                details={selectedSessionError.details}
+                onRetry={() => selectedId && setSelectedId(selectedId)}
+              />
+            ) : (
+              <>
+                <div className="grid grid-cols-3 gap-2 rounded-2xl border border-border bg-surface-muted p-2 text-center">
+                  <MiniMetric label="Cost" value={formatCurrency(selectedSession?.total_cost_usd)} />
+                  <MiniMetric label="Tokens" value={formatTokens(selectedUsage.input + selectedUsage.output)} />
+                  <MiniMetric label="Tools" value={String(selectedSession?.tool_call_count ?? 0)} />
+                </div>
 
-            <div className="grid grid-cols-2 gap-2 rounded-2xl border border-border bg-surface-muted p-2 text-center">
-              <MiniMetric label="Messages" value={String(selectedSession?.message_count ?? 0)} />
-              <MiniMetric label="Duration" value={formatDuration(selectedSession?.duration_ms)} />
-            </div>
+                <div className="grid grid-cols-2 gap-2 rounded-2xl border border-border bg-surface-muted p-2 text-center">
+                  <MiniMetric label="Messages" value={String(selectedSession?.message_count ?? 0)} />
+                  <MiniMetric label="Duration" value={formatDuration(selectedSession?.duration_ms)} />
+                </div>
 
-            <div className="rounded-2xl border border-border p-4">
-              <div className="mb-4 text-sm font-semibold text-foreground">Token Usage</div>
-              <TokenUsageBar input={selectedUsage.input} output={selectedUsage.output} cacheRead={selectedUsage.cacheRead} cacheWrite={selectedUsage.cacheWrite} />
-            </div>
+                <div className="rounded-2xl border border-border p-4">
+                  <div className="mb-4 text-sm font-semibold text-foreground">Token Usage</div>
+                  <TokenUsageBar input={selectedUsage.input} output={selectedUsage.output} cacheRead={selectedUsage.cacheRead} cacheWrite={selectedUsage.cacheWrite} />
+                </div>
 
-            <div className="rounded-2xl border border-border p-4 text-sm">
-              <div className="mb-4 text-sm font-semibold text-foreground">Metadata</div>
-              <InfoRow label="Project" value={basename(selectedSession?.project_path)} />
-              <InfoRow label="Provider" value={selectedSession?.provider ?? '—'} />
-              <InfoRow label="Model" value={selectedSession?.model ?? 'unknown'} />
-              <InfoRow label="Started" value={selectedSession?.started_at ? formatDate(selectedSession.started_at) : '—'} />
-              <InfoRow label="Ended" value={selectedSession?.ended_at ? formatDate(selectedSession.ended_at) : '—'} />
-              <InfoRow label="Duration" value={formatDuration(selectedSession?.duration_ms)} />
-            </div>
+                <div className="rounded-2xl border border-border p-4 text-sm">
+                  <div className="mb-4 text-sm font-semibold text-foreground">Metadata</div>
+                  <InfoRow label="Project" value={basename(selectedSession?.project_path)} />
+                  <InfoRow label="Provider" value={selectedSession?.provider ?? '—'} />
+                  <InfoRow label="Model" value={selectedSession?.model ?? 'unknown'} />
+                  <InfoRow label="Started" value={selectedSession?.started_at ? formatDate(selectedSession.started_at) : '—'} />
+                  <InfoRow label="Ended" value={selectedSession?.ended_at ? formatDate(selectedSession.ended_at) : '—'} />
+                  <InfoRow label="Duration" value={formatDuration(selectedSession?.duration_ms)} />
+                </div>
+              </>
+            )}
 
             {selectedId && (
               <Link to={`/sessions/${selectedId}`}>

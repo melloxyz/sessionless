@@ -13,6 +13,20 @@ export interface RawSession {
   sourceConfidence: SourceConfidence;
   messages: RawMessage[];
   usageEvents: RawUsageEvent[];
+  modelUsage?: RawModelUsage[];
+}
+
+export interface RawModelUsage {
+  provider: string;
+  model: string;
+  messageCount: number;
+  inputTokens: number;
+  outputTokens: number;
+  reasoningTokens: number;
+  cacheReadTokens: number;
+  cacheWriteTokens: number;
+  toolCallsCount: number;
+  totalCostUsd: number;
 }
 
 export interface RawMessage {

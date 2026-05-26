@@ -5,6 +5,7 @@ import { Badge } from '../components/ui/Badge.js';
 import { Button } from '../components/ui/Button.js';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card.js';
 import { TokenUsageBar } from '../components/session/TokenUsageBar.js';
+import { ErrorState } from '../components/ui/ErrorState.js';
 import { useApi } from '../hooks/useApi.js';
 import { basename, compactPath, formatCurrency, formatDate, formatDateTime, formatDuration, formatRelativeTime, formatTokens } from '../lib/format.js';
 
@@ -42,11 +43,25 @@ interface SessionDetail {
   session_id: string;
   messages: Message[];
   usageEvents: UsageEvent[];
+  modelUsage?: ModelUsage[];
+}
+
+interface ModelUsage {
+  provider: string;
+  model: string;
+  message_count: number;
+  input_tokens: number;
+  output_tokens: number;
+  reasoning_tokens: number;
+  cache_read_tokens: number;
+  cache_write_tokens: number;
+  tool_calls_count: number;
+  total_cost_usd: number;
 }
 
 export function SessionDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { data: session, loading } = useApi<SessionDetail>(id ? `/api/sessions/${id}` : null, { immediate: Boolean(id) });
+  const { data: session, loading, error, refetch } = useApi<SessionDetail>(id ? `/api/sessions/${id}` : null, { immediate: Boolean(id) });
 
   if (loading) {
     return (
@@ -61,6 +76,20 @@ export function SessionDetailPage() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="p-6">
+        <ErrorState
+          title={error.status === 404 ? 'Session not found' : 'Unable to load session'}
+          message={error.message}
+          code={error.code}
+          details={error.details}
+          onRetry={refetch}
+        />
+      </div>
+    );
+  }
+
   if (!session) return <div className="p-6 text-sm text-subtle-foreground">Session not found</div>;
 
   const messages = session.messages ?? [];
@@ -71,6 +100,7 @@ export function SessionDetailPage() {
   const cacheWrite = usageEvents.reduce((sum, event) => sum + (event.cache_write_tokens ?? 0), 0);
   const reasoning = usageEvents.reduce((sum, event) => sum + (event.reasoning_tokens ?? 0), 0);
   const totalTokens = totalInput + totalOutput + cacheRead + cacheWrite + reasoning;
+  const modelUsage = session.modelUsage ?? [];
 
   return (
     <div className="space-y-6 p-6">
@@ -133,6 +163,33 @@ export function SessionDetailPage() {
         </Card>
 
         <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+          {modelUsage.length > 1 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle>Models Used</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 pt-3">
+                {modelUsage.map((item) => (
+                  <div key={`${item.provider}/${item.model}`} className="rounded-2xl border border-border bg-surface-elevated p-3 text-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="font-medium text-foreground">{item.provider}/{item.model}</div>
+                        <div className="text-xs text-subtle-foreground">{item.message_count} messages</div>
+                      </div>
+                      <Badge variant="neutral">{formatCurrency(item.total_cost_usd)}</Badge>
+                    </div>
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-subtle-foreground">
+                      <DetailMetric label="Input" value={formatTokens(item.input_tokens)} />
+                      <DetailMetric label="Output" value={formatTokens(item.output_tokens)} />
+                      <DetailMetric label="Reasoning" value={formatTokens(item.reasoning_tokens)} />
+                      <DetailMetric label="Tools" value={String(item.tool_calls_count)} />
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader className="pb-2">
               <CardTitle>Token Usage</CardTitle>
@@ -161,6 +218,15 @@ export function SessionDetailPage() {
           </Card>
         </aside>
       </div>
+    </div>
+  );
+}
+
+function DetailMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-border bg-surface p-2">
+      <div className="text-[11px] uppercase tracking-[0.12em] text-subtle-foreground">{label}</div>
+      <div className="mt-1 font-medium text-foreground">{value}</div>
     </div>
   );
 }

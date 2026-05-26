@@ -18,7 +18,7 @@ export function runMigrations(): void {
     )
   `);
 
-  const migrations = ['0000_init'];
+  const migrations = ['0000_init', '0001_session_model_usage'];
 
   for (const name of migrations) {
     const result = db.exec(`SELECT name FROM __migrations WHERE name = ?`, [name]);
