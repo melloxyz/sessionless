@@ -12,7 +12,7 @@ import { registerProjectRoutes } from './routes/projects.js';
 import { registerModelRoutes } from './routes/models.js';
 import { syncOpenRouterPricing } from './openrouter.js';
 
-const PORT = Number(process.env.AIMETER_PORT) || 3030;
+const PORT = Number(process.env.SESSIONLESS_PORT || process.env.AIMETER_PORT) || 3030;
 
 async function main() {
   try {
