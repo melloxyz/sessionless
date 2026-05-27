@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowUpRight, Coins, Database, MessageSquare, MoreHorizontal, Timer, WalletCards } from 'lucide-react';
 import {
   Area,
@@ -77,6 +77,7 @@ const tooltipStyle = {
 
 export function DashboardPage() {
   const { t } = useI18n();
+  const navigate = useNavigate();
   const { queryString } = useDateRange();
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const queryPrefix = queryString ? `?${queryString}` : '';
@@ -200,7 +201,7 @@ export function DashboardPage() {
                 </thead>
                 <tbody>
                   {(recentSessions?.data ?? []).map((session) => (
-                    <tr key={session.id} onClick={() => setSelectedId(session.id)} className="cursor-pointer border-b border-border transition-colors hover:bg-surface-hover">
+                    <tr key={session.id} onClick={() => navigate(`/sessions/${session.id}`)} className="cursor-pointer border-b border-border transition-colors hover:bg-surface-hover">
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
                           <BrandMark value={session.cli} size="sm" />

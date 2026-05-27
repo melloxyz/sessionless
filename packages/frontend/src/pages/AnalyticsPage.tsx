@@ -15,10 +15,11 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { useApi } from '../hooks/useApi.js';
-import { formatCurrency, formatTokens } from '../lib/format.js';
+import { compactPath, formatCurrency, formatTokens } from '../lib/format.js';
 import { useDateRange } from '../components/filters/DateRangeProvider.js';
 import { BrandBadge } from '../components/brand/BrandMark.js';
 import { Badge } from '../components/ui/Badge.js';
+import { Button } from '../components/ui/Button.js';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card.js';
 import { EmptyState } from '../components/ui/EmptyState.js';
 import { ErrorState } from '../components/ui/ErrorState.js';
@@ -98,18 +99,34 @@ interface AnalyticsReport {
   }[];
 }
 
+interface FilterOption { label: string; value: string; count: number }
+interface FilterOptionsResponse { clis: FilterOption[]; providers: FilterOption[]; models: FilterOption[]; projects: FilterOption[] }
+
 export function AnalyticsPage() {
   const { t, locale } = useI18n();
   const { queryString } = useDateRange();
   const [dimension, setDimension] = useState('model');
   const [metric, setMetric] = useState('cost');
+  const [cliFilter, setCliFilter] = useState('');
+  const [providerFilter, setProviderFilter] = useState('');
+  const [modelFilter, setModelFilter] = useState('');
+  const [projectFilter, setProjectFilter] = useState('');
   const queryPrefix = queryString ? `?${queryString}` : '';
   const querySuffix = queryString ? `&${queryString}` : '';
+  const filterParams = new URLSearchParams(queryString);
+  if (cliFilter) filterParams.set('cli', cliFilter);
+  if (providerFilter) filterParams.set('provider', providerFilter);
+  if (modelFilter) filterParams.set('model', modelFilter);
+  if (projectFilter) filterParams.set('project', projectFilter);
+  const filteredQuery = filterParams.toString();
+  const filteredPrefix = filteredQuery ? `?${filteredQuery}` : '';
+  const filteredSuffix = filteredQuery ? `&${filteredQuery}` : '';
 
-  const { data: report, error: reportError } = useApi<AnalyticsReport>(`/api/analytics/report${queryPrefix}`);
-  const { data: spendData, error: spendError } = useApi<{ points: { date: string; spend: number; tokens: number }[] }>(`/api/analytics/spend-over-time?granularity=week${querySuffix}`);
-  const { data: tokenData, error: tokenError } = useApi<{ points: { date: string; inputTokens: number; outputTokens: number }[] }>(`/api/analytics/tokens-over-time${queryPrefix}`);
-  const { data: breakdownData, error: breakdownError } = useApi<{ breakdown: { label: string; value: number; percentage: number }[] }>(`/api/analytics/breakdown?dimension=${dimension}&metric=${metric}${querySuffix}`);
+  const { data: options } = useApi<FilterOptionsResponse>(`/api/analytics/filter-options${queryPrefix}`, { initialData: { clis: [], providers: [], models: [], projects: [] } });
+  const { data: report, error: reportError } = useApi<AnalyticsReport>(`/api/analytics/report${filteredPrefix}`);
+  const { data: spendData, error: spendError } = useApi<{ points: { date: string; spend: number; tokens: number }[] }>(`/api/analytics/spend-over-time?granularity=week${filteredSuffix}`);
+  const { data: tokenData, error: tokenError } = useApi<{ points: { date: string; inputTokens: number; outputTokens: number }[] }>(`/api/analytics/tokens-over-time${filteredPrefix}`);
+  const { data: breakdownData, error: breakdownError } = useApi<{ breakdown: { label: string; value: number; percentage: number }[] }>(`/api/analytics/breakdown?dimension=${dimension}&metric=${metric}${filteredSuffix}`);
 
   const breakdown = useMemo(() => (breakdownData?.breakdown ?? []).filter((d) => d.value > 0), [breakdownData]);
   const insights = report?.insights ?? [];
@@ -134,7 +151,7 @@ export function AnalyticsPage() {
           <h1 className="text-lg font-semibold text-foreground">Analytics</h1>
           <p className="text-sm text-subtle-foreground">{t('analytics.subtitle')}</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <Select
             options={[
               { label: t('analytics.byModel'), value: 'model' },
@@ -154,6 +171,11 @@ export function AnalyticsPage() {
             value={metric}
             onChange={(e) => setMetric(e.target.value)}
           />
+          <Select value={cliFilter} onChange={(e) => setCliFilter(e.target.value)} options={[{ label: t('analytics.allClis'), value: '' }, ...(options?.clis ?? []).map((item) => ({ label: `${item.label} (${item.count})`, value: item.value }))]} />
+          <Select value={providerFilter} onChange={(e) => setProviderFilter(e.target.value)} options={[{ label: t('analytics.allProviders'), value: '' }, ...(options?.providers ?? []).map((item) => ({ label: `${item.label} (${item.count})`, value: item.value }))]} />
+          <Select value={modelFilter} onChange={(e) => setModelFilter(e.target.value)} options={[{ label: t('analytics.allModels'), value: '' }, ...(options?.models ?? []).map((item) => ({ label: `${item.label} (${item.count})`, value: item.value }))]} />
+          <Select value={projectFilter} onChange={(e) => setProjectFilter(e.target.value)} options={[{ label: t('analytics.allProjects'), value: '' }, ...(options?.projects ?? []).map((item) => ({ label: `${compactPath(item.label)} (${item.count})`, value: item.value }))]} />
+          {(cliFilter || providerFilter || modelFilter || projectFilter) && <Button variant="outline" onClick={() => { setCliFilter(''); setProviderFilter(''); setModelFilter(''); setProjectFilter(''); }}>{t('analytics.clearFilters')}</Button>}
         </div>
       </div>
 

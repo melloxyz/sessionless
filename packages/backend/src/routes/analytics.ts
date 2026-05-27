@@ -27,7 +27,7 @@ export function registerAnalyticsRoutes(app: FastifyInstance): void {
   app.get('/api/analytics/report', async (req, reply) => {
     try {
       const q = req.query as Record<string, string>;
-      return buildAnalyticsReport({ dateFrom: q.dateFrom || null, dateTo: q.dateTo || null });
+      return buildAnalyticsReport(parseAnalyticsFilters(q));
     } catch (error) {
       reply.code(500);
       return { error: { code: 'ANALYTICS_REPORT_FAILED', message: 'Failed to build analytics report', details: String(error) } };
@@ -39,6 +39,9 @@ export function registerAnalyticsRoutes(app: FastifyInstance): void {
       const q = req.query as Record<string, string>;
       const granularity = q.granularity || 'day';
       const cli = q.cli || null;
+      const provider = q.provider || null;
+      const model = q.model || null;
+      const project = q.project || null;
       const dateFrom = q.dateFrom || null;
       const dateTo = q.dateTo || null;
 
@@ -59,6 +62,9 @@ export function registerAnalyticsRoutes(app: FastifyInstance): void {
       const params: (string | number | null)[] = [];
 
       if (cli) { sql += ` AND cli = ?`; params.push(cli); }
+      if (provider) { sql += ` AND LOWER(provider) = LOWER(?)`; params.push(provider); }
+      if (model) { sql += ` AND LOWER(COALESCE(model, 'unknown')) = LOWER(?)`; params.push(model); }
+      if (project) { sql += ` AND COALESCE(project_path, 'unknown') = ?`; params.push(project); }
       if (dateFrom) { sql += ` AND started_at >= ?`; params.push(dateFrom); }
       if (dateTo) { sql += ` AND started_at <= ?`; params.push(dateTo); }
 
@@ -89,6 +95,9 @@ export function registerAnalyticsRoutes(app: FastifyInstance): void {
     try {
     const q = req.query as Record<string, string>;
     const cli = q.cli || null;
+    const provider = q.provider || null;
+    const model = q.model || null;
+    const project = q.project || null;
     const dateFrom = q.dateFrom || null;
     const dateTo = q.dateTo || null;
 
@@ -108,6 +117,9 @@ export function registerAnalyticsRoutes(app: FastifyInstance): void {
     const params: (string | number | null)[] = [];
 
     if (cli) { sql += ` AND s.cli = ?`; params.push(cli); }
+    if (provider) { sql += ` AND LOWER(s.provider) = LOWER(?)`; params.push(provider); }
+    if (model) { sql += ` AND LOWER(COALESCE(s.model, 'unknown')) = LOWER(?)`; params.push(model); }
+    if (project) { sql += ` AND COALESCE(s.project_path, 'unknown') = ?`; params.push(project); }
     if (dateFrom) { sql += ` AND ue.timestamp >= ?`; params.push(dateFrom); }
     if (dateTo) { sql += ` AND ue.timestamp <= ?`; params.push(dateTo); }
 
@@ -140,6 +152,10 @@ export function registerAnalyticsRoutes(app: FastifyInstance): void {
     const q = req.query as Record<string, string>;
     const dimension = q.dimension || 'cli';
     const metric = q.metric || 'cost';
+    const cli = q.cli || null;
+    const provider = q.provider || null;
+    const model = q.model || null;
+    const project = q.project || null;
     const dateFrom = q.dateFrom || null;
     const dateTo = q.dateTo || null;
 
@@ -158,6 +174,10 @@ export function registerAnalyticsRoutes(app: FastifyInstance): void {
 
     let sql = `SELECT ${dim} AS label, ${metricCol} AS value FROM sessions WHERE ${VISIBLE_SESSION_SQL}`;
     const params: string[] = [];
+    if (cli) { sql += ` AND cli = ?`; params.push(cli); }
+    if (provider) { sql += ` AND LOWER(provider) = LOWER(?)`; params.push(provider); }
+    if (model) { sql += ` AND LOWER(COALESCE(model, 'unknown')) = LOWER(?)`; params.push(model); }
+    if (project) { sql += ` AND COALESCE(project_path, 'unknown') = ?`; params.push(project); }
     if (dateFrom) { sql += ` AND started_at >= ?`; params.push(dateFrom); }
     if (dateTo) { sql += ` AND started_at <= ?`; params.push(dateTo); }
     sql += ` GROUP BY ${dim} ORDER BY value DESC`;
@@ -186,4 +206,39 @@ export function registerAnalyticsRoutes(app: FastifyInstance): void {
       return { error: { code: 'BREAKDOWN_FAILED', message: 'Failed to load analytics breakdown', details: String(error) } };
     }
   });
+
+  app.get('/api/analytics/filter-options', async (req, reply) => {
+    try {
+      const q = req.query as Record<string, string>;
+      const dateFrom = q.dateFrom || null;
+      const dateTo = q.dateTo || null;
+      let where = `WHERE ${VISIBLE_SESSION_SQL}`;
+      const params: string[] = [];
+      if (dateFrom) { where += ` AND started_at >= ?`; params.push(dateFrom); }
+      if (dateTo) { where += ` AND started_at <= ?`; params.push(dateTo); }
+
+      const db = getDatabase();
+      const read = (sql: string) => (db.exec(sql, params)[0]?.values ?? []).map((row) => ({ label: String(row[0] ?? 'unknown'), value: String(row[0] ?? 'unknown'), count: Number(row[1]) || 0 }));
+      return {
+        clis: read(`SELECT cli, COUNT(*) FROM sessions ${where} GROUP BY cli ORDER BY COUNT(*) DESC, cli ASC`),
+        providers: read(`SELECT COALESCE(provider, 'unknown'), COUNT(*) FROM sessions ${where} GROUP BY COALESCE(provider, 'unknown') ORDER BY COUNT(*) DESC`),
+        models: read(`SELECT COALESCE(model, 'unknown'), COUNT(*) FROM sessions ${where} GROUP BY COALESCE(model, 'unknown') ORDER BY COUNT(*) DESC LIMIT 100`),
+        projects: read(`SELECT COALESCE(project_path, 'unknown'), COUNT(*) FROM sessions ${where} GROUP BY COALESCE(project_path, 'unknown') ORDER BY COUNT(*) DESC LIMIT 100`),
+      };
+    } catch (error) {
+      reply.code(500);
+      return { error: { code: 'ANALYTICS_FILTER_OPTIONS_FAILED', message: 'Failed to load analytics filter options', details: String(error) } };
+    }
+  });
+}
+
+function parseAnalyticsFilters(q: Record<string, string>) {
+  return {
+    dateFrom: q.dateFrom || null,
+    dateTo: q.dateTo || null,
+    cli: q.cli || null,
+    provider: q.provider || null,
+    model: q.model || null,
+    project: q.project || null,
+  };
 }

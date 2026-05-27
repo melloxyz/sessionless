@@ -6,11 +6,15 @@ import {
   FolderOpen,
   LayoutDashboard,
   MessageSquare,
+  Moon,
   PackageOpen,
   Settings,
+  Sun,
+  Github,
   type LucideIcon,
 } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageProvider.js';
+import { useTheme } from '../theme/ThemeProvider.js';
 import { useApi } from '../../hooks/useApi.js';
 import { cn } from '../../lib/utils.js';
 import type { IntegrationStatusItem } from './IntegrationStatus.js';
@@ -27,6 +31,7 @@ const NAV_ITEMS: { to: string; labelKey: 'nav.dashboard' | 'nav.sessions' | 'nav
 
 export function Sidebar() {
   const { t } = useI18n();
+  const { setTheme } = useTheme();
   const { data } = useApi<{ integrations: IntegrationStatusItem[] }>('/api/integrations/status', { initialData: { integrations: [] } });
 
   const integrations = (data?.integrations ?? [])
@@ -40,8 +45,8 @@ export function Sidebar() {
           <Activity className="h-5 w-5" />
         </div>
         <div>
-          <div className="text-sm font-semibold tracking-[-0.02em] text-foreground">AIMeter</div>
-          <div className="text-[11px] text-subtle-foreground">local observability</div>
+          <div className="text-sm font-semibold tracking-[-0.02em] text-foreground">Sessionless</div>
+          <div className="text-[11px] text-subtle-foreground">local AI usage</div>
         </div>
       </div>
 
@@ -79,18 +84,20 @@ export function Sidebar() {
         </div>
       </div>
 
-      <div className="mt-auto space-y-4 p-4">
-        <div className="flex items-center justify-between rounded-2xl border border-border bg-surface-elevated p-3">
-          <div className="flex items-center gap-3">
-            <div className="grid h-8 w-8 place-items-center rounded-full bg-accent-soft text-[10px] font-semibold text-accent">DEV</div>
-            <div className="min-w-0">
-              <div className="truncate text-xs font-medium text-foreground">Development build</div>
-              <div className="text-[11px] text-subtle-foreground">v0.0.1 local</div>
-            </div>
-          </div>
-          <NavLink to="/settings" className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground" aria-label="Settings">
+      <div className="mt-auto p-4">
+        <div className="grid grid-cols-4 gap-2 rounded-2xl border border-border bg-surface-elevated p-2">
+          <NavLink to="/settings" className="grid h-9 place-items-center rounded-xl text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground" aria-label="Settings">
             <Settings className="h-4 w-4" />
           </NavLink>
+          <button type="button" onClick={() => setTheme('light')} className="grid h-9 place-items-center rounded-xl text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground" aria-label="Light mode">
+            <Sun className="h-4 w-4" />
+          </button>
+          <button type="button" onClick={() => setTheme('dark')} className="grid h-9 place-items-center rounded-xl text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground" aria-label="Dark mode">
+            <Moon className="h-4 w-4" />
+          </button>
+          <a href="https://github.com/melloxyz/sessionless" target="_blank" rel="noreferrer" className="grid h-9 place-items-center rounded-xl text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground" aria-label="GitHub">
+            <Github className="h-4 w-4" />
+          </a>
         </div>
       </div>
     </aside>

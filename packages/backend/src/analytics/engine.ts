@@ -50,6 +50,10 @@ export interface AnalyticsReport {
 export interface AnalyticsFilters {
   dateFrom?: string | null;
   dateTo?: string | null;
+  cli?: string | null;
+  provider?: string | null;
+  model?: string | null;
+  project?: string | null;
 }
 
 export interface ModelUsageSummary {
@@ -402,7 +406,7 @@ export function buildAnalyticsReport(filters: AnalyticsFilters = {}): AnalyticsR
 }
 
 function querySessions(db: ReturnType<typeof getDatabase>, filters: AnalyticsFilters): SessionRow[] {
-  const range = buildDateWhere(filters);
+  const range = buildWhere(filters);
   const validSession = validSessionSql();
   const result = db.exec(
     `SELECT id, session_id, cli, provider, model, project_path, started_at, duration_ms, total_cost_usd, message_count, tool_call_count
@@ -416,7 +420,7 @@ function querySessions(db: ReturnType<typeof getDatabase>, filters: AnalyticsFil
 }
 
 function queryUsageAggregates(db: ReturnType<typeof getDatabase>, filters: AnalyticsFilters): UsageAggregate[] {
-  const range = buildDateWhere(filters, 's.started_at');
+  const range = buildWhere(filters, 's');
   const validSession = validSessionSql('s');
   const result = db.exec(
     `SELECT
@@ -443,7 +447,7 @@ function queryUsageAggregates(db: ReturnType<typeof getDatabase>, filters: Analy
 }
 
 function queryProjectSummaries(db: ReturnType<typeof getDatabase>, filters: AnalyticsFilters): ProjectSummary[] {
-  const range = buildDateWhere(filters);
+  const range = buildWhere(filters);
   const validSession = validSessionSql();
   const result = db.exec(
     `SELECT COALESCE(project_path, 'unknown') AS project, COALESCE(SUM(total_cost_usd), 0) AS spend, COUNT(*) AS sessions
@@ -458,7 +462,7 @@ function queryProjectSummaries(db: ReturnType<typeof getDatabase>, filters: Anal
 }
 
 function queryModelSummaries(db: ReturnType<typeof getDatabase>, filters: AnalyticsFilters): ModelSummary[] {
-  const range = buildDateWhere(filters);
+  const range = buildWhere(filters);
   const validSession = validSessionSql();
   const result = db.exec(
     `SELECT
@@ -481,7 +485,7 @@ function queryModelSummaries(db: ReturnType<typeof getDatabase>, filters: Analyt
 }
 
 function queryModelUsageBreakdown(db: ReturnType<typeof getDatabase>, filters: AnalyticsFilters): ModelUsageSummary[] {
-  const range = buildDateWhere(filters, 's.started_at');
+  const range = buildWhere(filters, 's');
   const validSession = validSessionSql('s');
   const result = db.exec(
     `SELECT smu.provider, smu.model,
@@ -505,7 +509,7 @@ function queryModelUsageBreakdown(db: ReturnType<typeof getDatabase>, filters: A
 }
 
 function queryDailyTrend(db: ReturnType<typeof getDatabase>, filters: AnalyticsFilters): { date: string; spend: number }[] {
-  const range = buildDateWhere(filters);
+  const range = buildWhere(filters);
   const validSession = validSessionSql();
   const anchorResult = db.exec(`SELECT date(MAX(started_at)) AS anchor FROM sessions WHERE ${validSession}${range.sql}`, range.params);
   const anchor = anchorResult[0]?.values?.[0]?.[0] as string | undefined;
@@ -513,13 +517,14 @@ function queryDailyTrend(db: ReturnType<typeof getDatabase>, filters: AnalyticsF
 
   const anchorDate = toUtcDay(anchor);
   const startDate = filters.dateFrom ? toUtcDay(filters.dateFrom) : addUtcDays(anchorDate, -13);
-  const params: string[] = [filters.dateFrom ?? toIsoDate(startDate)];
+  const filterWhere = buildWhere({ ...filters, dateFrom: null, dateTo: null });
+  const params: string[] = [filters.dateFrom ?? toIsoDate(startDate), ...filterWhere.params];
   let dateToSql = '';
   if (filters.dateTo) { dateToSql = ' AND started_at <= ?'; params.push(filters.dateTo); }
   const spendResult = db.exec(
     `SELECT date(started_at) AS day, COALESCE(SUM(total_cost_usd), 0) AS spend
      FROM sessions
-     WHERE ${validSession} AND started_at >= ?${dateToSql}
+     WHERE ${validSession} AND started_at >= ?${filterWhere.sql}${dateToSql}
      GROUP BY day`,
     params,
   );
@@ -540,11 +545,16 @@ function queryDailyTrend(db: ReturnType<typeof getDatabase>, filters: AnalyticsF
   return points;
 }
 
-function buildDateWhere(filters: AnalyticsFilters, column = 'started_at'): { sql: string; params: string[] } {
+function buildWhere(filters: AnalyticsFilters, alias?: string): { sql: string; params: string[] } {
+  const prefix = alias ? `${alias}.` : '';
   let sql = '';
   const params: string[] = [];
-  if (filters.dateFrom) { sql += ` AND ${column} >= ?`; params.push(filters.dateFrom); }
-  if (filters.dateTo) { sql += ` AND ${column} <= ?`; params.push(filters.dateTo); }
+  if (filters.dateFrom) { sql += ` AND ${prefix}started_at >= ?`; params.push(filters.dateFrom); }
+  if (filters.dateTo) { sql += ` AND ${prefix}started_at <= ?`; params.push(filters.dateTo); }
+  if (filters.cli) { sql += ` AND ${prefix}cli = ?`; params.push(filters.cli); }
+  if (filters.provider) { sql += ` AND LOWER(${prefix}provider) = LOWER(?)`; params.push(filters.provider); }
+  if (filters.model) { sql += ` AND LOWER(COALESCE(${prefix}model, 'unknown')) = LOWER(?)`; params.push(filters.model); }
+  if (filters.project) { sql += ` AND COALESCE(${prefix}project_path, 'unknown') = ?`; params.push(filters.project); }
   return { sql, params };
 }
 
