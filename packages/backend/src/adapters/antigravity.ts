@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import type { Adapter, Checkpoint, RawSession } from './types.js';
-import type { CliProvider } from '@aimeter/shared';
+import type { CliProvider } from '@sessionless/shared';
 import { createGeminiAdapter } from './gemini.js';
 
 const ANTIGRAVITY_ROOTS = [

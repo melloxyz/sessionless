@@ -3,6 +3,7 @@ import {
   Activity,
   BarChart3,
   CircleDot,
+  History,
   FolderOpen,
   LayoutDashboard,
   MessageSquare,
@@ -20,18 +21,17 @@ import { cn } from '../../lib/utils.js';
 import type { IntegrationStatusItem } from './IntegrationStatus.js';
 import { BrandMark, getBrandMeta } from '../brand/BrandMark.js';
 
-const NAV_ITEMS: { to: string; labelKey: 'nav.dashboard' | 'nav.sessions' | 'nav.projects' | 'nav.models' | 'nav.analytics' | 'nav.settings'; icon: LucideIcon }[] = [
+const NAV_ITEMS: { to: string; labelKey: 'nav.dashboard' | 'nav.sessions' | 'nav.projects' | 'nav.models' | 'nav.analytics'; icon: LucideIcon }[] = [
   { to: '/', labelKey: 'nav.dashboard', icon: LayoutDashboard },
   { to: '/sessions', labelKey: 'nav.sessions', icon: MessageSquare },
   { to: '/projects', labelKey: 'nav.projects', icon: FolderOpen },
   { to: '/models', labelKey: 'nav.models', icon: PackageOpen },
   { to: '/analytics', labelKey: 'nav.analytics', icon: BarChart3 },
-  { to: '/settings', labelKey: 'nav.settings', icon: Settings },
 ];
 
 export function Sidebar() {
   const { t } = useI18n();
-  const { setTheme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const { data } = useApi<{ integrations: IntegrationStatusItem[] }>('/api/integrations/status', { initialData: { integrations: [] } });
 
   const integrations = (data?.integrations ?? [])
@@ -89,12 +89,12 @@ export function Sidebar() {
           <NavLink to="/settings" className="grid h-9 place-items-center rounded-xl text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground" aria-label="Settings">
             <Settings className="h-4 w-4" />
           </NavLink>
-          <button type="button" onClick={() => setTheme('light')} className="grid h-9 place-items-center rounded-xl text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground" aria-label="Light mode">
-            <Sun className="h-4 w-4" />
+          <button type="button" onClick={toggleTheme} className="grid h-9 place-items-center rounded-xl text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground" aria-label={theme === 'dark' ? 'Light mode' : 'Dark mode'}>
+            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
-          <button type="button" onClick={() => setTheme('dark')} className="grid h-9 place-items-center rounded-xl text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground" aria-label="Dark mode">
-            <Moon className="h-4 w-4" />
-          </button>
+          <NavLink to="/changelog" className="grid h-9 place-items-center rounded-xl text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground" aria-label="Changelog">
+            <History className="h-4 w-4" />
+          </NavLink>
           <a href="https://github.com/melloxyz/sessionless" target="_blank" rel="noreferrer" className="grid h-9 place-items-center rounded-xl text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground" aria-label="GitHub">
             <Github className="h-4 w-4" />
           </a>

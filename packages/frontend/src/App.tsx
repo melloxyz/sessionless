@@ -11,6 +11,7 @@ import { ThemeProvider } from './components/theme/ThemeProvider.js';
 import { LanguageProvider } from './components/i18n/LanguageProvider.js';
 import { DateRangeProvider } from './components/filters/DateRangeProvider.js';
 import { SettingsPage } from './pages/SettingsPage.js';
+import { ChangelogPage } from './pages/ChangelogPage.js';
 
 export function App() {
   return (
@@ -27,6 +28,7 @@ export function App() {
               <Route path="/analytics" element={<AnalyticsPage />} />
               <Route path="/models" element={<ModelsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/changelog" element={<ChangelogPage />} />
             </Route>
           </Routes>
         </DateRangeProvider>

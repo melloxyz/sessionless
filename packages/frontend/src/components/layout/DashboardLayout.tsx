@@ -10,6 +10,7 @@ const PAGE_KEYS: Record<string, { title: Parameters<ReturnType<typeof useI18n>['
   '/analytics': { title: 'topbar.analytics.title', subtitle: 'topbar.analytics.subtitle' },
   '/models': { title: 'topbar.models.title', subtitle: 'topbar.models.subtitle' },
   '/settings': { title: 'topbar.settings.title', subtitle: 'topbar.settings.subtitle' },
+  '/changelog': { title: 'topbar.changelog.title', subtitle: 'topbar.changelog.subtitle' },
 };
 
 function getPageKeys(pathname: string) {

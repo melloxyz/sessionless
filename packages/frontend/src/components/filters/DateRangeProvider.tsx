@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 
 export type DateRangeValue = '7d' | '30d' | '90d' | 'all';
 
-const STORAGE_KEY = 'aimeter-date-range';
+const STORAGE_KEY = 'sessionless-date-range';
 
 const DateRangeContext = createContext<{
   range: DateRangeValue;

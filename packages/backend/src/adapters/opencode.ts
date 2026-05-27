@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import type { Adapter, Checkpoint, RawSession, RawMessage, RawUsageEvent, RawModelUsage } from './types.js';
-import type { CliProvider, SourceConfidence } from '@aimeter/shared';
+import type { CliProvider, SourceConfidence } from '@sessionless/shared';
 
 const OPENCODE_DB = join(homedir(), '.local', 'share', 'opencode', 'opencode.db');
 

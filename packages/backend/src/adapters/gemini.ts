@@ -2,7 +2,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import type { Adapter, Checkpoint, RawMessage, RawSession, RawUsageEvent } from './types.js';
-import type { CliProvider, SourceConfidence } from '@aimeter/shared';
+import type { CliProvider, SourceConfidence } from '@sessionless/shared';
 
 const GEMINI_HOME = join(homedir(), '.gemini');
 

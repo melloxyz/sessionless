@@ -1,12 +1,12 @@
 import initSqlJs, { Database as SqlJsDatabase } from 'sql.js';
 import { join, dirname } from 'node:path';
-import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 
 let db: SqlJsDatabase | null = null;
 let dbPath: string;
 
 export function getDbPath(): string {
-  return process.env.DATABASE_PATH || join(process.cwd(), 'data', 'aimeter.db');
+  return process.env.DATABASE_PATH || join(process.cwd(), 'data', 'sessionless.db');
 }
 
 export function getDatabase(): SqlJsDatabase {
@@ -22,6 +22,11 @@ export async function initDatabase(): Promise<void> {
 
   if (!existsSync(dir)) {
     mkdirSync(dir, { recursive: true });
+  }
+
+  const legacyPath = join(dir, ['ai', 'meter.db'].join(''));
+  if (!existsSync(dbPath) && existsSync(legacyPath)) {
+    copyFileSync(legacyPath, dbPath);
   }
 
   const SQL = await initSqlJs();

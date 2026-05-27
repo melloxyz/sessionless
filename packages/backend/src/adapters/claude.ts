@@ -3,7 +3,7 @@ import { readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import type { Adapter, Checkpoint, RawSession, RawMessage } from './types.js';
-import type { CliProvider, SourceConfidence } from '@aimeter/shared';
+import type { CliProvider, SourceConfidence } from '@sessionless/shared';
 
 const CLAUDE_HOME = join(homedir(), '.claude');
 const PROJECTS_DIR = join(CLAUDE_HOME, 'projects');

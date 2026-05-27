@@ -3,7 +3,6 @@ import { useDateRange } from '../filters/DateRangeProvider.js';
 import { useI18n } from '../i18n/LanguageProvider.js';
 import { Button } from '../ui/Button.js';
 import { Select } from '../ui/Select.js';
-import { ThemeToggle } from '../theme/ThemeToggle.js';
 
 interface TopbarProps {
   title: string;
@@ -43,7 +42,6 @@ export function Topbar({ title, subtitle, onRefresh, showDateRange }: TopbarProp
         <Button variant="outline" size="icon" aria-label="Refresh" onClick={onRefresh}>
           <RefreshCw className="h-4 w-4" />
         </Button>
-        <ThemeToggle />
       </div>
     </header>
   );

@@ -1,4 +1,4 @@
-import type { CliProvider, SourceConfidence } from '@aimeter/shared';
+import type { CliProvider, SourceConfidence } from '@sessionless/shared';
 
 export interface RawSession {
   sessionId: string;

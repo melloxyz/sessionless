@@ -77,7 +77,7 @@ async function main() {
       }
     })();
   } catch (err) {
-    console.error('AIMeter backend startup failed:', err);
+    console.error('Sessionless backend startup failed:', err);
     process.exit(1);
   }
 }
