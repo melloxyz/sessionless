@@ -1,6 +1,7 @@
 import { CheckCircle2, CircleDot, Clock3, GitBranch, Layers3, Sparkles } from 'lucide-react';
 import { Badge } from '../components/ui/Badge.js';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card.js';
+import { DataPanel } from '../components/ui/DataPanel.js';
+import { SectionHeader } from '../components/ui/SectionHeader.js';
 import { useI18n } from '../components/i18n/LanguageProvider.js';
 
 const latest = [
@@ -119,36 +120,33 @@ export function ChangelogPage() {
   const { t } = useI18n();
 
   return (
-    <div className="space-y-6 p-6">
-      <Card className="overflow-hidden">
-        <CardContent className="relative p-6">
-          <div className="absolute right-6 top-6 hidden h-28 w-28 rounded-full bg-accent-soft blur-2xl md:block" />
-          <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-2xl">
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="default" className="gap-1.5">
-                  <Sparkles className="h-3 w-3" /> Sessionless
-                </Badge>
-                <Badge variant="success">{t('changelog.current')}</Badge>
-              </div>
-              <h2 className="mt-4 text-3xl font-semibold tracking-[-0.06em] text-foreground">
-                {t('changelog.version')}
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                {t('changelog.hero.description')}
-              </p>
+    <div className="space-y-5 p-4 lg:p-6">
+      <DataPanel contentClassName="space-y-5 p-5">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="default" className="gap-1.5">
+                <Sparkles className="h-3 w-3" /> Sessionless
+              </Badge>
+              <Badge variant="success">{t('changelog.current')}</Badge>
             </div>
-            <a
-              href="https://github.com/melloxyz/sessionless"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface-elevated px-3 py-2 text-sm font-medium text-accent hover:text-accent-hover"
-            >
-              <GitBranch className="h-4 w-4" /> github.com/melloxyz/sessionless
-            </a>
+            <h2 className="mt-4 font-mono text-3xl font-semibold tracking-[-0.06em] text-foreground">
+              {t('changelog.version')}
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              {t('changelog.hero.description')}
+            </p>
           </div>
-        </CardContent>
-      </Card>
+          <a
+            href="https://github.com/melloxyz/sessionless"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 rounded-md border border-border bg-surface-elevated px-3 py-2 font-mono text-xs font-medium text-accent transition-colors hover:border-border-strong hover:text-accent-hover"
+          >
+            <GitBranch className="h-4 w-4" /> github.com/melloxyz/sessionless
+          </a>
+        </div>
+      </DataPanel>
 
       <section className="space-y-3">
         <SectionTitle
@@ -157,12 +155,10 @@ export function ChangelogPage() {
         />
         <div className="grid gap-3 lg:grid-cols-3">
           {latest.map(([tag, title]) => (
-            <Card key={title}>
-              <CardContent className="space-y-3 p-4">
-                <Badge variant="neutral">{t(tag)}</Badge>
-                <div className="font-medium text-foreground">{title}</div>
-              </CardContent>
-            </Card>
+            <DataPanel key={title} contentClassName="space-y-3 p-4">
+              <Badge variant="neutral">{t(tag)}</Badge>
+              <div className="font-mono text-sm font-medium text-foreground">{title}</div>
+            </DataPanel>
           ))}
         </div>
       </section>
@@ -195,19 +191,14 @@ export function ChangelogPage() {
             items={planned}
             tone="info"
           />
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('changelog.status.title')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <StatusRow
-                label={t('changelog.status.localFirst')}
-                value={t('changelog.status.active')}
-              />
-              <StatusRow label={t('changelog.status.pricing')} value="OpenRouter" />
-              <StatusRow label={t('changelog.status.name')} value="Sessionless" />
-            </CardContent>
-          </Card>
+          <DataPanel title={t('changelog.status.title')} contentClassName="space-y-3 text-sm">
+            <StatusRow
+              label={t('changelog.status.localFirst')}
+              value={t('changelog.status.active')}
+            />
+            <StatusRow label={t('changelog.status.pricing')} value="OpenRouter" />
+            <StatusRow label={t('changelog.status.name')} value="Sessionless" />
+          </DataPanel>
         </aside>
       </div>
     </div>
@@ -215,12 +206,7 @@ export function ChangelogPage() {
 }
 
 function SectionTitle({ title, description }: { title: string; description: string }) {
-  return (
-    <div>
-      <h2 className="text-sm font-semibold text-foreground">{title}</h2>
-      <p className="mt-1 text-xs text-subtle-foreground">{description}</p>
-    </div>
-  );
+  return <SectionHeader title={title} description={description} />;
 }
 
 function ReleaseCard({
@@ -230,34 +216,32 @@ function ReleaseCard({
 }) {
   const { t } = useI18n();
   return (
-    <Card>
-      <CardContent className="grid gap-0 p-0 md:grid-cols-[160px_minmax(0,1fr)]">
-        <div className="border-b border-border p-5 md:border-b-0 md:border-r">
-          <div className="flex items-center gap-2 font-semibold text-foreground">
-            <CheckCircle2 className="h-4 w-4 text-success" />
-            {entry.version}
-          </div>
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {entry.tags.map((tag) => (
-              <Badge key={tag} variant="neutral">
-                {t(tag)}
-              </Badge>
-            ))}
-          </div>
+    <DataPanel contentClassName="grid gap-0 p-0 md:grid-cols-[160px_minmax(0,1fr)]">
+      <div className="border-b border-border p-5 md:border-b-0 md:border-r">
+        <div className="flex items-center gap-2 font-mono text-sm font-semibold text-foreground">
+          <CheckCircle2 className="h-4 w-4 text-success" />
+          {entry.version}
         </div>
-        <div className="p-5">
-          <div className="font-semibold text-foreground">{entry.title}</div>
-          <div className="mt-3 space-y-2">
-            {entry.items.map((item) => (
-              <div key={item} className="flex gap-2 text-sm text-muted-foreground">
-                <CircleDot className="mt-1 h-3 w-3 shrink-0 fill-accent text-accent" />
-                <span>{item}</span>
-              </div>
-            ))}
-          </div>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {entry.tags.map((tag) => (
+            <Badge key={tag} variant="neutral">
+              {t(tag)}
+            </Badge>
+          ))}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+      <div className="p-5">
+        <div className="font-mono text-sm font-semibold text-foreground">{entry.title}</div>
+        <div className="mt-3 space-y-2">
+          {entry.items.map((item) => (
+            <div key={item} className="flex gap-2 text-sm text-muted-foreground">
+              <CircleDot className="mt-1 h-3 w-3 shrink-0 fill-accent text-accent" />
+              <span>{item}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </DataPanel>
   );
 }
 
@@ -276,35 +260,31 @@ function RoadmapCard({
 }) {
   const toneClass = tone === 'warning' ? 'bg-warning-soft text-warning' : 'bg-info-soft text-info';
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center gap-3">
-          <div className={`grid h-9 w-9 place-items-center rounded-2xl ${toneClass}`}>
-            <Icon className="h-4 w-4" />
-          </div>
-          <div>
-            <CardTitle>{title}</CardTitle>
-            <p className="mt-1 text-xs text-subtle-foreground">{description}</p>
-          </div>
+    <DataPanel
+      title={title}
+      description={description}
+      contentClassName="space-y-2"
+      action={
+        <div className={`grid h-9 w-9 place-items-center rounded-md border ${toneClass}`}>
+          <Icon className="h-4 w-4" />
         </div>
-      </CardHeader>
-      <CardContent className="space-y-2">
-        {items.map((item) => (
-          <div
-            key={item}
-            className="rounded-xl border border-border bg-surface-muted p-3 text-sm text-muted-foreground"
-          >
-            {item}
-          </div>
-        ))}
-      </CardContent>
-    </Card>
+      }
+    >
+      {items.map((item) => (
+        <div
+          key={item}
+          className="rounded-md border border-border bg-surface-muted p-3 text-sm text-muted-foreground"
+        >
+          {item}
+        </div>
+      ))}
+    </DataPanel>
   );
 }
 
 function StatusRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between gap-4">
+    <div className="flex justify-between gap-4 font-mono text-sm">
       <span className="text-muted-foreground">{label}</span>
       <span className="font-medium text-foreground">{value}</span>
     </div>
