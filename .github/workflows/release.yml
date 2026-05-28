@@ -49,20 +49,23 @@ jobs:
             SHORT="${HASH:0:7}"
             LINE="- ${MSG} (\`${SHORT}\`)"
 
-            case "$MSG" in
-              feat\(*\):*|feat:*)
-                FEATS="${FEATS}${LINE}"$'\n' ;;
-              fix\(*\):*|fix:*)
-                FIXES="${FIXES}${LINE}"$'\n' ;;
-              chore\(*\):*|chore:*)
-                CHORES="${CHORES}${LINE}"$'\n' ;;
-              docs\(*\):*|docs:*)
-                DOCS="${DOCS}${LINE}"$'\n' ;;
-              refactor\(*\):*|refactor:*)
-                REFACTORS="${REFACTORS}${LINE}"$'\n' ;;
-              *)
-                OTHER="${OTHER}${LINE}"$'\n' ;;
-            esac
+            TYPES=$(echo "$MSG" | grep -oiE '(feat|fix|chore|docs|refactor|perf|test|ci|build|style)\s*(\([^)]*\))?\s*:' | tr '[:upper:]' '[:lower:]' | sort -u)
+
+            if [ -z "$TYPES" ]; then
+              OTHER="${OTHER}${LINE}"$'\n'
+              continue
+            fi
+
+            for TYPE in $TYPES; do
+              case "$TYPE" in
+                feat*)  FEATS="${FEATS}${LINE}"$'\n' ;;
+                fix*)   FIXES="${FIXES}${LINE}"$'\n' ;;
+                chore*) CHORES="${CHORES}${LINE}"$'\n' ;;
+                docs*)  DOCS="${DOCS}${LINE}"$'\n' ;;
+                refactor*) REFACTORS="${REFACTORS}${LINE}"$'\n' ;;
+                *) OTHER="${OTHER}${LINE}"$'\n' ;;
+              esac
+            done
           done <<< "$COMMITS"
 
           {
