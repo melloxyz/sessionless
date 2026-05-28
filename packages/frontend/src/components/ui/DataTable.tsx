@@ -25,7 +25,10 @@ export function DataTableBody({ className, ...props }: HTMLAttributes<HTMLTableS
 export function DataTableRow({ className, ...props }: HTMLAttributes<HTMLTableRowElement>) {
   return (
     <tr
-      className={cn('border-b border-border transition-colors hover:bg-surface-hover', className)}
+      className={cn(
+        'border-b border-border transition-colors hover:bg-surface-hover focus-within:bg-surface-hover',
+        className,
+      )}
       {...props}
     />
   );

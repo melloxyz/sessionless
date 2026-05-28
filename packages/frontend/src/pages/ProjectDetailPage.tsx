@@ -52,7 +52,7 @@ const tooltipStyle = {
   border: '1px solid var(--border)',
   borderRadius: 6,
   color: 'var(--foreground)',
-  boxShadow: 'var(--shadow-card)',
+  boxShadow: 'none',
   fontSize: 12,
 };
 
@@ -86,7 +86,7 @@ export function ProjectDetailPage() {
   if (loading) return <LoadingState />;
   if (error)
     return (
-      <div className="p-6">
+      <div className="p-4 lg:p-6">
         <ErrorState
           title={t('project.failed')}
           message={error.message}
@@ -98,7 +98,7 @@ export function ProjectDetailPage() {
     );
   if (!data?.project)
     return (
-      <div className="p-6">
+      <div className="p-4 lg:p-6">
         <EmptyState
           title={t('project.notFound.title')}
           description={t('project.notFound.description')}

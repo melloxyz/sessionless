@@ -1027,8 +1027,8 @@ function localizeAnomaly(item: Anomaly, locale: string): Anomaly {
 const tooltipStyle = {
   background: 'var(--surface-elevated)',
   border: '1px solid var(--border)',
-  borderRadius: 12,
+  borderRadius: 6,
   color: 'var(--foreground)',
-  boxShadow: 'var(--shadow-card)',
+  boxShadow: 'none',
   fontSize: 12,
 };

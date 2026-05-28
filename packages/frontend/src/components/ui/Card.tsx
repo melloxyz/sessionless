@@ -11,7 +11,7 @@ export function Card({ className, interactive, ...props }: CardProps) {
       className={cn(
         'rounded-lg border border-border bg-surface text-foreground',
         interactive &&
-          'transition-colors duration-150 hover:border-border-strong hover:bg-surface-elevated',
+          'transition-colors duration-150 hover:border-border-strong hover:bg-surface-elevated focus-within:border-border-strong focus-within:bg-surface-elevated',
         className,
       )}
       {...props}

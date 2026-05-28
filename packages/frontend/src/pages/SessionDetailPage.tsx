@@ -101,7 +101,7 @@ export function SessionDetailPage() {
 
   if (error) {
     return (
-      <div className="p-6">
+      <div className="p-4 lg:p-6">
         <ErrorState
           title={error.status === 404 ? t('session.notFound') : t('session.unable')}
           message={error.message}
@@ -115,7 +115,7 @@ export function SessionDetailPage() {
 
   if (!session)
     return (
-      <div className="p-6">
+      <div className="p-4 lg:p-6">
         <EmptyState
           title={t('session.notFound')}
           description={t('session.notFound.description')}

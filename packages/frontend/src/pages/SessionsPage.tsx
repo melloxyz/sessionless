@@ -273,7 +273,7 @@ function HeaderCell({
   return (
     <DataTableHeaderCell className={align === 'right' ? 'text-right' : 'text-left'}>
       <button
-        className="inline-flex items-center gap-1 transition-colors hover:text-foreground"
+        className="inline-flex items-center gap-1 rounded-sm transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
         onClick={onClick}
       >
         {children}

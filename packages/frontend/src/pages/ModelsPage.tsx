@@ -78,7 +78,7 @@ export function ModelsPage() {
 
   if (error) {
     return (
-      <div className="p-6">
+      <div className="p-4 lg:p-6">
         <ErrorState
           title={t('models.failed')}
           message={error.message}

@@ -124,13 +124,13 @@ export function BrandMark({
     size === 'sm'
       ? 'h-7 w-7 rounded-lg text-[10px]'
       : size === 'lg'
-        ? 'h-12 w-12 rounded-2xl text-sm'
+        ? 'h-12 w-12 rounded-lg text-sm'
         : 'h-9 w-9 rounded-xl text-xs';
 
   return (
     <div
       className={cn(
-        'grid shrink-0 place-items-center border border-border bg-surface-elevated font-semibold text-white shadow-sm',
+        'grid shrink-0 place-items-center border border-border bg-surface-elevated font-semibold text-white',
         sizeClass,
         className,
       )}

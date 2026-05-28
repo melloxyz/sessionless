@@ -151,18 +151,6 @@ a[href] {
   background-clip: padding-box;
 }
 
-.premium-card {
-  box-shadow: var(--shadow-card);
-}
-
-.chart-tooltip {
-  border: 1px solid var(--border) !important;
-  background: var(--surface-elevated) !important;
-  border-radius: 6px !important;
-  color: var(--foreground) !important;
-  box-shadow: var(--shadow-card) !important;
-}
-
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
