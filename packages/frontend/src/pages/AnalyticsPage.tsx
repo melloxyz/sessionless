@@ -24,6 +24,7 @@ import {
 } from 'recharts';
 import { useApi } from '../hooks/useApi.js';
 import { compactPath, formatCurrency, formatTokens } from '../lib/format.js';
+import { chartColor } from '../lib/chart-colors.js';
 import { useDateRange } from '../components/filters/DateRangeProvider.js';
 import { BrandBadge } from '../components/brand/BrandMark.js';
 import { Badge } from '../components/ui/Badge.js';
@@ -36,8 +37,6 @@ import { MetricTile } from '../components/ui/MetricTile.js';
 import { SectionHeader as SharedSectionHeader } from '../components/ui/SectionHeader.js';
 import { Select } from '../components/ui/Select.js';
 import { useI18n } from '../components/i18n/LanguageProvider.js';
-
-const COLORS = ['#0a84ff', '#64d2ff', '#30d158', '#ff9f0a', '#ff453a', '#9a9898', '#007aff'];
 
 interface Insight {
   id: string;
@@ -168,7 +167,7 @@ export function AnalyticsPage() {
   const modelUsage = report?.modelUsageBreakdown ?? [];
 
   return (
-    <div className="space-y-6 p-4 lg:p-6">
+    <div className="space-y-5 p-4 lg:p-6">
       {(reportError || spendError || tokenError || breakdownError) && (
         <ErrorState
           title={t('analytics.failed')}
@@ -239,7 +238,7 @@ export function AnalyticsPage() {
               onChange={(e) => setMetric(e.target.value)}
             />
           </FilterField>
-          <FilterField label="CLI">
+          <FilterField label={t('common.cli')}>
             <Select
               value={cliFilter}
               onChange={(e) => setCliFilter(e.target.value)}
@@ -361,7 +360,7 @@ export function AnalyticsPage() {
           value={formatCurrency(productivity?.avgCostPerToolCall)}
           sub={
             productivity?.costToolCallCorrelation != null
-              ? `Correlation ${productivity.costToolCallCorrelation.toFixed(2)}`
+              ? `${t('analytics.correlation')} ${productivity.costToolCallCorrelation.toFixed(2)}`
               : t('analytics.correlationUnavailable')
           }
           tone="danger"
@@ -561,7 +560,7 @@ export function AnalyticsPage() {
                     innerRadius={55}
                   >
                     {breakdown.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                      <Cell key={i} fill={chartColor(i)} />
                     ))}
                   </Pie>
                   <Tooltip
@@ -579,7 +578,7 @@ export function AnalyticsPage() {
                 <div key={d.label} className="flex items-center gap-2">
                   <div
                     className="h-2.5 w-2.5 shrink-0 rounded-sm"
-                    style={{ background: COLORS[i % COLORS.length] }}
+                    style={{ background: chartColor(i) }}
                   />
                   <span className="max-w-[120px] truncate text-subtle-foreground">{d.label}</span>
                   <span className="ml-auto font-mono font-medium text-foreground">

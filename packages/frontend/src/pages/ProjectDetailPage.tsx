@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
   Clock3,
@@ -29,6 +29,7 @@ import {
   formatDate,
   formatDuration,
 } from '../lib/format.js';
+import { chartColor } from '../lib/chart-colors.js';
 import { Badge } from '../components/ui/Badge.js';
 import { DataPanel } from '../components/ui/DataPanel.js';
 import {
@@ -46,7 +47,6 @@ import { LoadingState } from '../components/ui/LoadingState.js';
 import { MetricTile } from '../components/ui/MetricTile.js';
 import { useI18n } from '../components/i18n/LanguageProvider.js';
 
-const COLORS = ['#0a84ff', '#64d2ff', '#30d158', '#ff9f0a', '#ff453a', '#9a9898'];
 const tooltipStyle = {
   background: 'var(--surface-elevated)',
   border: '1px solid var(--border)',
@@ -123,7 +123,7 @@ export function ProjectDetailPage() {
     <div className="space-y-5 p-4 lg:p-6">
       <Link
         to="/projects"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        className="inline-flex items-center gap-1 rounded-sm text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
       >
         <ArrowLeft className="h-4 w-4" /> {t('project.back')}
       </Link>
@@ -202,6 +202,12 @@ export function ProjectDetailPage() {
         <DataPanel title={t('project.spendOverTime')}>
           <ResponsiveContainer width="100%" height={280}>
             <AreaChart data={spendData}>
+              <defs>
+                <linearGradient id="projectSpendGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.35} />
+                  <stop offset="95%" stopColor="var(--accent)" stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
               <CartesianGrid stroke="var(--border)" vertical={false} />
               <XAxis
                 dataKey="day"
@@ -223,7 +229,7 @@ export function ProjectDetailPage() {
                 type="monotone"
                 dataKey="spend"
                 stroke="var(--accent)"
-                fill="var(--accent-soft)"
+                fill="url(#projectSpendGradient)"
                 strokeWidth={2.4}
               />
             </AreaChart>
@@ -332,7 +338,7 @@ function DistributionCard({
             innerRadius={48}
           >
             {data.map((_, i) => (
-              <Cell key={i} fill={COLORS[i % COLORS.length]} />
+              <Cell key={i} fill={chartColor(i)} />
             ))}
           </Pie>
           <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [formatCurrency(v), '']} />
@@ -341,10 +347,7 @@ function DistributionCard({
       <div className="space-y-2 text-xs">
         {data.slice(0, 8).map((d, i) => (
           <div key={d.name} className="flex items-center gap-2">
-            <div
-              className="h-2.5 w-2.5 rounded-sm"
-              style={{ background: COLORS[i % COLORS.length] }}
-            />
+            <div className="h-2.5 w-2.5 rounded-sm" style={{ background: chartColor(i) }} />
             <span className="min-w-0 flex-1 truncate text-muted-foreground">{d.name}</span>
             <span className="font-mono font-medium text-foreground">{formatCurrency(d.value)}</span>
           </div>
@@ -356,12 +359,20 @@ function DistributionCard({
 
 function SessionRow({ session }: { session: Record<string, unknown> }) {
   const { t } = useI18n();
+  const navigate = useNavigate();
+
   return (
     <DataTableRow
       className="cursor-pointer border-b border-border transition-colors hover:bg-surface-hover"
-      onClick={() => {
-        window.location.href = `/sessions/${session.id}`;
+      onClick={() => navigate(`/sessions/${session.id}`)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          navigate(`/sessions/${session.id}`);
+        }
       }}
+      tabIndex={0}
+      role="button"
     >
       <DataTableCell className="font-mono text-foreground">
         {formatDate(String(session.started_at))}

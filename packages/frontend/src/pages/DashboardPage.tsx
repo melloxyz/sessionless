@@ -207,7 +207,7 @@ export function DashboardPage() {
             value={formatCurrency(overview?.totalSpend)}
             icon={WalletCards}
             loading={overviewLoading}
-            change="+ live"
+            change={`+ ${t('dashboard.live')}`}
             changeTone="success"
             sparkline
           />
@@ -216,7 +216,7 @@ export function DashboardPage() {
             value={formatTokens(totalTokens)}
             icon={Database}
             loading={overviewLoading}
-            change="all sources"
+            change={t('dashboard.allSources')}
             changeTone="info"
             sparkline
           />
@@ -243,7 +243,7 @@ export function DashboardPage() {
             value={formatDuration(totalDurationMs)}
             icon={Timer}
             loading={overviewLoading}
-            change="indexed"
+            change={t('dashboard.indexed')}
             changeTone="success"
             sparkline
           />
@@ -255,10 +255,10 @@ export function DashboardPage() {
           <DataPanel
             className="lg:col-span-2 2xl:col-span-1"
             title={t('project.spendOverTime')}
-            description="Daily cost across all AI coding CLIs"
+            description={t('dashboard.spendTrendDescription')}
             action={
               <Button variant="outline" size="sm">
-                Daily
+                {t('common.daily')}
               </Button>
             }
             contentClassName="pt-4"
@@ -267,8 +267,8 @@ export function DashboardPage() {
               <AreaChart data={spendPoints}>
                 <defs>
                   <linearGradient id="spendGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--success)" stopOpacity={0.35} />
-                    <stop offset="95%" stopColor="var(--success)" stopOpacity={0.02} />
+                    <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="var(--accent)" stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid stroke="var(--border)" vertical={false} />
@@ -286,15 +286,15 @@ export function DashboardPage() {
                 />
                 <Tooltip
                   contentStyle={tooltipStyle}
-                  formatter={(value: number) => [formatCurrency(value), 'Spend']}
+                  formatter={(value: number) => [formatCurrency(value), t('common.cost')]}
                 />
                 <Area
                   type="monotone"
                   dataKey="spend"
-                  stroke="var(--success)"
+                  stroke="var(--accent)"
                   fill="url(#spendGradient)"
                   strokeWidth={2.4}
-                  dot={{ r: 3, fill: 'var(--success)' }}
+                  dot={{ r: 3, fill: 'var(--accent)' }}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -304,7 +304,7 @@ export function DashboardPage() {
             title={t('dashboard.spendByCli')}
             data={cliData}
             center={formatCurrency(overview?.totalSpend)}
-            centerLabel="Total"
+            centerLabel={t('common.total')}
             emptyTitle={t('dashboard.noSpend.title')}
             emptyDescription={t('dashboard.noSpend.description')}
             colorFor={(label, index) => CLI_COLORS[label] ?? chartColor(index)}
@@ -313,7 +313,7 @@ export function DashboardPage() {
             title={t('dashboard.spendByModel')}
             data={modelData}
             center={`${modelData.length}`}
-            centerLabel="models"
+            centerLabel={t('dashboard.modelsLabel')}
             emptyTitle={t('dashboard.noSpend.title')}
             emptyDescription={t('dashboard.noSpend.description')}
             colorFor={(_, index) => chartColor(index)}
@@ -323,13 +323,13 @@ export function DashboardPage() {
         <DataPanel
           className="overflow-hidden"
           title={t('dashboard.recentSessions')}
-          description="Latest indexed conversations across Codex, OpenCode and Claude"
+          description={t('dashboard.recentSessionsDescription')}
           action={
             <Link
               to="/sessions"
-              className="inline-flex items-center gap-2 font-mono text-xs font-medium text-accent transition-colors hover:text-accent-hover"
+              className="inline-flex items-center gap-2 rounded-sm font-mono text-xs font-medium text-accent transition-colors hover:text-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
             >
-              View all sessions <ArrowUpRight className="h-4 w-4" />
+              {t('dashboard.viewAllSessions')} <ArrowUpRight className="h-4 w-4" />
             </Link>
           }
           contentClassName="p-0"
@@ -339,7 +339,7 @@ export function DashboardPage() {
               <DataTableHead className="sticky top-0 z-10 bg-surface">
                 <DataTableRow className="hover:bg-transparent">
                   <DataTableHeaderCell>{t('common.session')}</DataTableHeaderCell>
-                  <DataTableHeaderCell>CLI</DataTableHeaderCell>
+                  <DataTableHeaderCell>{t('common.cli')}</DataTableHeaderCell>
                   <DataTableHeaderCell>{t('common.model')}</DataTableHeaderCell>
                   <DataTableHeaderCell>{t('common.project')}</DataTableHeaderCell>
                   <DataTableHeaderCell className="text-right">
@@ -348,7 +348,9 @@ export function DashboardPage() {
                   <DataTableHeaderCell className="text-right">
                     {t('common.cost')}
                   </DataTableHeaderCell>
-                  <DataTableHeaderCell className="text-right">Time</DataTableHeaderCell>
+                  <DataTableHeaderCell className="text-right">
+                    {t('common.time')}
+                  </DataTableHeaderCell>
                   <DataTableHeaderCell className="w-10" />
                 </DataTableRow>
               </DataTableHead>
@@ -357,6 +359,15 @@ export function DashboardPage() {
                   <DataTableRow
                     key={session.id}
                     onClick={() => navigate(`/sessions/${session.id}`)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        navigate(`/sessions/${session.id}`);
+                      }
+                    }}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={t('dashboard.openSession')}
                     className="cursor-pointer"
                   >
                     <DataTableCell>
@@ -374,7 +385,7 @@ export function DashboardPage() {
                       <BrandBadge value={session.cli} />
                     </DataTableCell>
                     <DataTableCell className="font-mono text-xs text-muted-foreground">
-                      {session.model ?? 'unknown'}
+                      {session.model ?? t('common.unknown')}
                     </DataTableCell>
                     <DataTableCell className="max-w-[220px] truncate text-muted-foreground">
                       {compactPath(session.project_path)}
@@ -411,7 +422,7 @@ export function DashboardPage() {
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between gap-2">
                 <h2 className="truncate font-mono text-base font-semibold text-foreground">
-                  {selectedSession?.session_id?.slice(0, 8) ?? 'Session'}
+                  {selectedSession?.session_id?.slice(0, 8) ?? t('common.session')}
                 </h2>
                 <Badge
                   variant={
@@ -426,7 +437,8 @@ export function DashboardPage() {
                 </Badge>
               </div>
               <p className="mt-1 truncate text-sm text-muted-foreground">
-                {getBrandMeta(selectedSession?.cli).label} · {selectedSession?.model ?? 'unknown'}
+                {getBrandMeta(selectedSession?.cli).label} ·{' '}
+                {selectedSession?.model ?? t('common.unknown')}
               </p>
             </div>
           </div>
@@ -434,7 +446,7 @@ export function DashboardPage() {
           {selectedSessionError ? (
             <ErrorState
               title={
-                selectedSessionError.status === 404 ? 'Session not found' : 'Unable to load session'
+                selectedSessionError.status === 404 ? t('session.notFound') : t('session.unable')
               }
               message={selectedSessionError.message}
               code={selectedSessionError.code}
@@ -444,22 +456,34 @@ export function DashboardPage() {
           ) : (
             <>
               <div className="grid grid-cols-1 gap-2 rounded-lg border border-border bg-surface-muted p-2 text-center sm:grid-cols-3">
-                <MiniMetric label="Cost" value={formatCurrency(selectedSession?.total_cost_usd)} />
                 <MiniMetric
-                  label="Tokens"
+                  label={t('common.cost')}
+                  value={formatCurrency(selectedSession?.total_cost_usd)}
+                />
+                <MiniMetric
+                  label={t('common.tokens')}
                   value={formatTokens(selectedUsage.input + selectedUsage.output)}
                 />
-                <MiniMetric label="Tools" value={String(selectedSession?.tool_call_count ?? 0)} />
+                <MiniMetric
+                  label={t('common.tools')}
+                  value={String(selectedSession?.tool_call_count ?? 0)}
+                />
               </div>
 
               <div className="grid grid-cols-1 gap-2 rounded-lg border border-border bg-surface-muted p-2 text-center sm:grid-cols-2">
-                <MiniMetric label="Messages" value={String(selectedSession?.message_count ?? 0)} />
-                <MiniMetric label="Duration" value={formatDuration(selectedSession?.duration_ms)} />
+                <MiniMetric
+                  label={t('common.messages')}
+                  value={String(selectedSession?.message_count ?? 0)}
+                />
+                <MiniMetric
+                  label={t('common.duration')}
+                  value={formatDuration(selectedSession?.duration_ms)}
+                />
               </div>
 
-              <div className="rounded-lg border border-border p-4">
+              <div className="rounded-md border border-border p-4">
                 <div className="mb-4 font-mono text-sm font-semibold text-foreground">
-                  Token Usage
+                  {t('session.tokenUsage')}
                 </div>
                 <TokenUsageBar
                   input={selectedUsage.input}
@@ -469,20 +493,31 @@ export function DashboardPage() {
                 />
               </div>
 
-              <div className="rounded-lg border border-border p-4 text-sm">
-                <div className="mb-4 font-mono text-sm font-semibold text-foreground">Metadata</div>
-                <InfoRow label="Project" value={basename(selectedSession?.project_path)} />
-                <InfoRow label="Provider" value={selectedSession?.provider ?? '—'} />
-                <InfoRow label="Model" value={selectedSession?.model ?? 'unknown'} />
+              <div className="rounded-md border border-border p-4 text-sm">
+                <div className="mb-4 font-mono text-sm font-semibold text-foreground">
+                  {t('session.metadata')}
+                </div>
                 <InfoRow
-                  label="Started"
+                  label={t('common.project')}
+                  value={basename(selectedSession?.project_path)}
+                />
+                <InfoRow label={t('common.provider')} value={selectedSession?.provider ?? '—'} />
+                <InfoRow
+                  label={t('common.model')}
+                  value={selectedSession?.model ?? t('common.unknown')}
+                />
+                <InfoRow
+                  label={t('common.started')}
                   value={selectedSession?.started_at ? formatDate(selectedSession.started_at) : '—'}
                 />
                 <InfoRow
-                  label="Ended"
+                  label={t('common.ended')}
                   value={selectedSession?.ended_at ? formatDate(selectedSession.ended_at) : '—'}
                 />
-                <InfoRow label="Duration" value={formatDuration(selectedSession?.duration_ms)} />
+                <InfoRow
+                  label={t('common.duration')}
+                  value={formatDuration(selectedSession?.duration_ms)}
+                />
               </div>
             </>
           )}
@@ -517,11 +552,13 @@ function DonutCard({
   emptyDescription: string;
   colorFor: (label: string, index: number) => string;
 }) {
+  const { t } = useI18n();
+
   return (
     <DataPanel
       className="h-full min-h-[348px]"
       title={title}
-      description="Top contributors by cost"
+      description={t('dashboard.topContributors')}
       contentClassName="grid min-h-[292px] grid-rows-[160px_1fr] gap-4 pt-3"
     >
       <div className="relative mx-auto h-40 w-40">
@@ -545,7 +582,7 @@ function DonutCard({
             </Pie>
             <Tooltip
               contentStyle={tooltipStyle}
-              formatter={(value: number) => [formatCurrency(value), 'Spend']}
+              formatter={(value: number) => [formatCurrency(value), t('common.cost')]}
             />
           </PieChart>
         </ResponsiveContainer>

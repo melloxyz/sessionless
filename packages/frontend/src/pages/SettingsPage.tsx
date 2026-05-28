@@ -122,7 +122,7 @@ export function SettingsPage() {
           <PreferenceButton
             active={theme === 'light'}
             icon={Sun}
-            title="Light"
+            title={t('settings.light')}
             description={t('settings.light.description')}
             onClick={() => setTheme('light')}
             tone="warning"
@@ -130,7 +130,7 @@ export function SettingsPage() {
           <PreferenceButton
             active={theme === 'dark'}
             icon={Moon}
-            title="Dark"
+            title={t('settings.dark')}
             description={t('settings.dark.description')}
             onClick={() => setTheme('dark')}
             tone="accent"
@@ -144,13 +144,13 @@ export function SettingsPage() {
         >
           <LanguageButton
             active={locale === 'en'}
-            label="English"
+            label={t('settings.english')}
             description={t('settings.english.description')}
             onClick={() => setLocale('en')}
           />
           <LanguageButton
             active={locale === 'pt-BR'}
-            label="Português"
+            label={t('settings.portuguese')}
             description={t('settings.portuguese.description')}
             onClick={() => setLocale('pt-BR')}
           />
@@ -359,7 +359,7 @@ export function SettingsPage() {
 
         <DataPanel
           title={t('settings.localDatabase')}
-          action={<Badge variant="success">Local</Badge>}
+          action={<Badge variant="success">{t('settings.local')}</Badge>}
           contentClassName="space-y-4"
         >
           <div className="grid gap-3 rounded-lg border border-border bg-surface-muted p-4 text-sm">
@@ -421,8 +421,10 @@ function PreferenceButton({
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={`flex items-start justify-between gap-4 rounded-lg border p-4 text-left transition-colors hover:bg-surface-hover ${active ? 'border-accent bg-accent-soft' : 'border-border bg-surface'}`}
+      aria-pressed={active}
+      className={`flex items-start justify-between gap-4 rounded-md border p-4 text-left transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25 ${active ? 'border-accent bg-accent-soft' : 'border-border bg-surface'}`}
     >
       <div>
         <Icon className={`mb-4 h-5 w-5 ${tone === 'warning' ? 'text-warning' : 'text-accent'}`} />
@@ -447,8 +449,10 @@ function LanguageButton({
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={`flex items-start justify-between gap-4 rounded-lg border p-4 text-left transition-colors hover:bg-surface-hover ${active ? 'border-accent bg-accent-soft' : 'border-border bg-surface'}`}
+      aria-pressed={active}
+      className={`flex items-start justify-between gap-4 rounded-md border p-4 text-left transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25 ${active ? 'border-accent bg-accent-soft' : 'border-border bg-surface'}`}
     >
       <div>
         <Languages className="mb-4 h-5 w-5 text-accent" />

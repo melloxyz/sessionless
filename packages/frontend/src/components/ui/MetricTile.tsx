@@ -56,7 +56,7 @@ export function MetricTile({
                 toneMap[tone],
               )}
             >
-              <Icon className="h-[17px] w-[17px]" />
+              <Icon className="h-4 w-4" />
             </div>
           )}
         </div>

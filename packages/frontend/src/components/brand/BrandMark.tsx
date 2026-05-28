@@ -122,10 +122,10 @@ export function BrandMark({
   const CustomLogo = meta.customLogo === 'opencode' ? OpenCodeLogo : null;
   const sizeClass =
     size === 'sm'
-      ? 'h-7 w-7 rounded-lg text-[10px]'
+      ? 'h-7 w-7 rounded-md text-[10px]'
       : size === 'lg'
         ? 'h-12 w-12 rounded-lg text-sm'
-        : 'h-9 w-9 rounded-xl text-xs';
+        : 'h-9 w-9 rounded-md text-xs';
 
   return (
     <div
@@ -186,7 +186,7 @@ export function BrandBadge({
         value={value}
         kind={kind}
         size="sm"
-        className="h-4 w-4 rounded-[5px] border-0 text-[7px] shadow-none"
+        className="h-4 w-4 rounded-[4px] border-0 text-[7px] shadow-none"
       />
       {meta.label}
     </Badge>

@@ -135,10 +135,12 @@ export function SessionsPage() {
                 <HeaderCell onClick={() => handleSort('started_at')}>
                   {t('common.session')}
                 </HeaderCell>
-                <DataTableHeaderCell>CLI</DataTableHeaderCell>
+                <DataTableHeaderCell>{t('common.cli')}</DataTableHeaderCell>
                 <HeaderCell onClick={() => handleSort('model')}>{t('common.model')}</HeaderCell>
                 <DataTableHeaderCell>{t('common.project')}</DataTableHeaderCell>
-                <DataTableHeaderCell className="text-right">Activity</DataTableHeaderCell>
+                <DataTableHeaderCell className="text-right">
+                  {t('common.activity')}
+                </DataTableHeaderCell>
                 <HeaderCell align="right" onClick={() => handleSort('total_cost_usd')}>
                   {t('common.cost')}
                 </HeaderCell>
@@ -177,7 +179,7 @@ export function SessionsPage() {
                       <BrandBadge value={session.cli} />
                     </DataTableCell>
                     <DataTableCell className="font-mono text-xs text-muted-foreground">
-                      {session.model ?? 'unknown'}
+                      {session.model ?? t('common.unknown')}
                     </DataTableCell>
                     <DataTableCell>
                       <div className="font-mono text-sm font-medium text-foreground">
@@ -233,7 +235,8 @@ export function SessionsPage() {
 
         <div className="flex flex-col gap-3 border-t border-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <div className="text-xs text-subtle-foreground sm:text-left">
-            Showing page {page} of {totalPages} · {data?.total ?? 0} sessions
+            {t('common.page')} {page} {t('common.of')} {totalPages} · {data?.total ?? 0}{' '}
+            {t('common.sessions').toLowerCase()}
           </div>
           <div className="flex w-full gap-2 sm:w-auto">
             <Button

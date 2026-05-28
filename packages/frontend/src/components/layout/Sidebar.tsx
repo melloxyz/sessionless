@@ -68,9 +68,9 @@ export function Sidebar() {
             end={item.to === '/'}
             className={({ isActive }) =>
               cn(
-                'group relative flex h-9 items-center gap-3 rounded-md border px-3 font-mono text-sm transition-colors duration-150',
+                'group relative flex h-9 items-center gap-3 rounded-md border px-3 font-mono text-sm transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25',
                 isActive
-                  ? 'border-accent/35 bg-surface-elevated text-foreground'
+                  ? 'border-transparent bg-surface-hover text-foreground'
                   : 'border-transparent text-muted-foreground hover:border-border hover:bg-surface-hover hover:text-foreground',
               )
             }
@@ -79,12 +79,16 @@ export function Sidebar() {
               <>
                 <span
                   className={cn(
-                    'absolute left-0 top-1/2 h-4 w-px -translate-y-1/2 rounded-full bg-transparent transition-colors',
+                    'absolute left-1.5 top-1/2 h-5 w-[2px] -translate-y-1/2 rounded-full bg-transparent transition-colors',
                     isActive && 'bg-accent',
                   )}
                 />
-                <item.icon className="h-4 w-4 shrink-0" />
-                <span>{t(item.labelKey)}</span>
+                <item.icon
+                  className={cn('h-4 w-4 shrink-0 transition-colors', isActive && 'text-accent')}
+                />
+                <span className={cn('transition-colors', isActive && 'text-foreground')}>
+                  {t(item.labelKey)}
+                </span>
               </>
             )}
           </NavLink>
@@ -170,9 +174,9 @@ export function MobileNavigation() {
             end={item.to === '/'}
             className={({ isActive }) =>
               cn(
-                'flex h-12 flex-col items-center justify-center gap-1 rounded-md border font-mono text-[10px] transition-colors duration-150',
+                'flex h-12 flex-col items-center justify-center gap-1 rounded-md border font-mono text-[10px] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25',
                 isActive
-                  ? 'border-accent/35 bg-surface-elevated text-foreground'
+                  ? 'border-transparent bg-surface-hover text-foreground'
                   : 'border-transparent text-muted-foreground hover:border-border hover:bg-surface-hover hover:text-foreground',
               )
             }

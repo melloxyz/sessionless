@@ -149,7 +149,7 @@ export function SessionDetailPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link
           to="/sessions"
-          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          className="inline-flex items-center gap-2 rounded-sm text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
         >
           <ArrowLeft className="h-4 w-4" /> {t('session.back')}
         </Link>
@@ -162,7 +162,7 @@ export function SessionDetailPage() {
                 : 'warning'
           }
         >
-          {session.source_confidence} confidence
+          {session.source_confidence}
         </Badge>
       </div>
 
@@ -178,7 +178,7 @@ export function SessionDetailPage() {
               </span>
             </div>
             <h1 className="truncate font-mono text-2xl font-semibold tracking-[-0.04em] text-foreground">
-              Session {session.session_id.slice(0, 12)}
+              {t('common.session')} {session.session_id.slice(0, 12)}
             </h1>
             <p className="mt-1 truncate text-sm text-muted-foreground">
               {compactPath(session.project_path)}
@@ -266,7 +266,7 @@ export function SessionDetailPage() {
               {modelUsage.map((item) => (
                 <div
                   key={`${item.provider}/${item.model}`}
-                  className="rounded-lg border border-border bg-surface-elevated p-3 text-sm"
+                  className="rounded-md border border-border bg-surface-elevated p-3 text-sm"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
@@ -274,16 +274,25 @@ export function SessionDetailPage() {
                         {item.provider}/{item.model}
                       </div>
                       <div className="text-xs text-subtle-foreground">
-                        {item.message_count} messages
+                        {item.message_count} {t('common.messages').toLowerCase()}
                       </div>
                     </div>
                     <Badge variant="neutral">{formatCurrency(item.total_cost_usd)}</Badge>
                   </div>
                   <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-subtle-foreground">
-                    <DetailMetric label="Input" value={formatTokens(item.input_tokens)} />
-                    <DetailMetric label="Output" value={formatTokens(item.output_tokens)} />
-                    <DetailMetric label="Reasoning" value={formatTokens(item.reasoning_tokens)} />
-                    <DetailMetric label="Tools" value={String(item.tool_calls_count)} />
+                    <DetailMetric
+                      label={t('common.input')}
+                      value={formatTokens(item.input_tokens)}
+                    />
+                    <DetailMetric
+                      label={t('common.output')}
+                      value={formatTokens(item.output_tokens)}
+                    />
+                    <DetailMetric
+                      label={t('common.reasoning')}
+                      value={formatTokens(item.reasoning_tokens)}
+                    />
+                    <DetailMetric label={t('common.tools')} value={String(item.tool_calls_count)} />
                   </div>
                 </div>
               ))}
@@ -297,13 +306,15 @@ export function SessionDetailPage() {
               cacheRead={cacheRead}
               cacheWrite={cacheWrite}
             />
-            {reasoning > 0 && <DetailRow label="Reasoning" value={formatTokens(reasoning)} />}
+            {reasoning > 0 && (
+              <DetailRow label={t('common.reasoning')} value={formatTokens(reasoning)} />
+            )}
           </DataPanel>
 
           <DataPanel title={t('session.metadata')} contentClassName="space-y-3 pt-3 text-sm">
             <DetailRow label={t('common.project')} value={basename(session.project_path)} />
-            <DetailRow label="Path" value={compactPath(session.project_path)} />
-            <DetailRow label="CLI" value={session.cli} />
+            <DetailRow label={t('common.path')} value={compactPath(session.project_path)} />
+            <DetailRow label={t('common.cli')} value={session.cli} />
             <DetailRow label={t('common.provider')} value={session.provider} />
             <DetailRow label={t('common.model')} value={session.model ?? t('common.unknown')} />
             <DetailRow
@@ -316,7 +327,7 @@ export function SessionDetailPage() {
               value={session.ended_at ? formatDateTime(session.ended_at) : '—'}
             />
             <DetailRow label={t('common.date')} value={formatDate(session.started_at)} />
-            <DetailRow label="Session ID" value={session.session_id} mono />
+            <DetailRow label={t('session.sessionId')} value={session.session_id} mono />
           </DataPanel>
         </aside>
       </div>
@@ -367,10 +378,10 @@ function MessageBubble({ message }: { message: Message }) {
         <div
           className={
             isUser
-              ? 'rounded-lg border border-accent bg-accent px-4 py-3 text-sm text-accent-foreground'
+              ? 'rounded-md border border-accent bg-accent px-4 py-3 text-sm text-accent-foreground'
               : isAssistant
-                ? 'rounded-lg border border-border bg-surface-elevated px-4 py-3 text-sm text-foreground'
-                : 'rounded-lg border border-border bg-surface-muted px-4 py-3 text-sm text-muted-foreground'
+                ? 'rounded-md border border-border bg-surface-elevated px-4 py-3 text-sm text-foreground'
+                : 'rounded-md border border-border bg-surface-muted px-4 py-3 text-sm text-muted-foreground'
           }
         >
           <div className="mb-2 flex items-center justify-between gap-4 text-[11px] uppercase tracking-[0.14em] opacity-60">

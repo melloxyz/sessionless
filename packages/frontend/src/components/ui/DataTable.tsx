@@ -26,7 +26,7 @@ export function DataTableRow({ className, ...props }: HTMLAttributes<HTMLTableRo
   return (
     <tr
       className={cn(
-        'border-b border-border transition-colors hover:bg-surface-hover focus-within:bg-surface-hover',
+        'border-b border-border transition-colors duration-150 hover:bg-surface-hover focus-within:bg-surface-hover focus-visible:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/20',
         className,
       )}
       {...props}
