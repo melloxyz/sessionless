@@ -12,8 +12,11 @@ import {
 import { Badge } from '../components/ui/Badge.js';
 import { Button } from '../components/ui/Button.js';
 import { Card, CardContent } from '../components/ui/Card.js';
+import { FilterBar } from '../components/ui/FilterBar.js';
 import { Input } from '../components/ui/Input.js';
+import { MetricTile } from '../components/ui/MetricTile.js';
 import { Select } from '../components/ui/Select.js';
+import { SectionHeader } from '../components/ui/SectionHeader.js';
 import { ErrorState } from '../components/ui/ErrorState.js';
 import { EmptyState } from '../components/ui/EmptyState.js';
 import { useI18n } from '../components/i18n/LanguageProvider.js';
@@ -100,26 +103,27 @@ export function ProjectsPage() {
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-5 p-4 lg:p-6">
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <SummaryCard
+        <MetricTile
           icon={FolderOpen}
           label={t('projects.summary.visible')}
           value={String(summary.visible)}
+          tone="info"
         />
-        <SummaryCard
+        <MetricTile
           icon={HardDrive}
           label={t('projects.summary.available')}
           value={String(summary.available)}
           tone="success"
         />
-        <SummaryCard
+        <MetricTile
           icon={HardDrive}
           label={t('projects.summary.missing')}
           value={String(summary.missing)}
           tone="warning"
         />
-        <SummaryCard
+        <MetricTile
           icon={SlidersHorizontal}
           label={t('projects.summary.spend')}
           value={formatCurrency(summary.spend)}
@@ -127,18 +131,9 @@ export function ProjectsPage() {
         />
       </div>
 
-      <Card>
-        <CardContent className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="relative max-w-xl flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle-foreground" />
-            <Input
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder={t('projects.search.placeholder')}
-              className="pl-9"
-            />
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
+      <FilterBar
+        actions={
+          <>
             <Select
               value={status}
               onChange={(event) => setStatus(event.target.value as StatusFilter)}
@@ -157,20 +152,30 @@ export function ProjectsPage() {
                 { label: t('projects.sortName'), value: 'name' },
               ]}
             />
-            <div className="hidden items-center gap-2 rounded-xl border border-border px-3 py-2 text-sm text-muted-foreground md:flex">
+            <div className="hidden items-center gap-2 rounded-md border border-border px-3 py-2 font-mono text-xs text-muted-foreground md:flex">
               <SlidersHorizontal className="h-4 w-4" />
               {projects.length} {t('projects.shown')}
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </>
+        }
+      >
+        <div className="relative max-w-xl flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle-foreground" />
+          <Input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder={t('projects.search.placeholder')}
+            className="pl-9"
+          />
+        </div>
+      </FilterBar>
 
       {topProjects.length > 0 && (
         <section className="space-y-3">
-          <div>
-            <h2 className="text-sm font-semibold text-foreground">{t('projects.top.title')}</h2>
-            <p className="text-xs text-subtle-foreground">{t('projects.top.description')}</p>
-          </div>
+          <SectionHeader
+            title={t('projects.top.title')}
+            description={t('projects.top.description')}
+          />
           <div className="grid gap-4 lg:grid-cols-3">
             {topProjects.map((project, index) => (
               <ProjectCard
@@ -188,10 +193,10 @@ export function ProjectsPage() {
       )}
 
       <section className="space-y-3">
-        <div>
-          <h2 className="text-sm font-semibold text-foreground">{t('projects.all.title')}</h2>
-          <p className="text-xs text-subtle-foreground">{t('projects.all.description')}</p>
-        </div>
+        <SectionHeader
+          title={t('projects.all.title')}
+          description={t('projects.all.description')}
+        />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {loading
             ? Array.from({ length: 9 }).map((_, index) => <ProjectSkeleton key={index} />)
@@ -218,44 +223,6 @@ export function ProjectsPage() {
   );
 }
 
-function SummaryCard({
-  icon: Icon,
-  label,
-  value,
-  tone = 'default',
-}: {
-  icon: typeof FolderOpen;
-  label: string;
-  value: string;
-  tone?: 'default' | 'success' | 'warning' | 'info';
-}) {
-  const toneClass =
-    tone === 'success'
-      ? 'bg-success-soft text-success'
-      : tone === 'warning'
-        ? 'bg-warning-soft text-warning'
-        : tone === 'info'
-          ? 'bg-info-soft text-info'
-          : 'bg-accent-soft text-accent';
-  return (
-    <Card>
-      <CardContent className="flex items-center gap-3 p-4">
-        <div className={`grid h-10 w-10 place-items-center rounded-2xl ${toneClass}`}>
-          <Icon className="h-4 w-4" />
-        </div>
-        <div>
-          <div className="text-[11px] uppercase tracking-[0.14em] text-subtle-foreground">
-            {label}
-          </div>
-          <div className="mt-1 text-xl font-semibold tracking-[-0.04em] text-foreground">
-            {value}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 function ProjectCard({
   project,
   maxCost,
@@ -279,16 +246,16 @@ function ProjectCard({
         <div className="flex items-start justify-between gap-4">
           <Link to={`/projects/${project.id}`} className="flex min-w-0 flex-1 items-center gap-3">
             <div
-              className={`grid h-11 w-11 shrink-0 place-items-center rounded-2xl ring-1 ${project.exists ? 'bg-accent-soft text-accent ring-accent/15' : 'bg-warning-soft text-warning ring-warning/15'}`}
+              className={`grid h-11 w-11 shrink-0 place-items-center rounded-md border ${project.exists ? 'border-accent/20 bg-accent-soft text-accent' : 'border-warning/20 bg-warning-soft text-warning'}`}
             >
               {featured && rank ? (
-                <span className="text-sm font-semibold">#{rank}</span>
+                <span className="font-mono text-sm font-semibold">#{rank}</span>
               ) : (
                 <FolderOpen className="h-5 w-5" />
               )}
             </div>
             <div className="min-w-0">
-              <div className="truncate font-semibold tracking-[-0.02em] text-foreground">
+              <div className="truncate font-mono text-sm font-semibold tracking-[-0.02em] text-foreground">
                 {basename(project.path)}
               </div>
               <div className="truncate text-xs text-subtle-foreground">
@@ -309,7 +276,7 @@ function ProjectCard({
             </Button>
             <Link
               to={`/projects/${project.id}`}
-              className="rounded-lg p-2 text-subtle-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
+              className="rounded-md border border-transparent p-2 text-subtle-foreground transition-colors hover:border-border hover:bg-surface-hover hover:text-foreground"
             >
               <ArrowUpRight className="h-4 w-4" />
             </Link>
@@ -337,18 +304,18 @@ function ProjectCard({
             <span>{t('common.cost')}</span>
             <span>{percent}%</span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-surface-muted">
-            <div className="h-full rounded-full bg-accent" style={{ width: `${percent}%` }} />
+          <div className="h-1.5 overflow-hidden rounded bg-surface-muted">
+            <div className="h-full rounded bg-accent" style={{ width: `${percent}%` }} />
           </div>
         </div>
 
         {project.git_remote ? (
-          <div className="flex items-center gap-2 rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 rounded-md border border-border bg-surface-muted px-3 py-2 font-mono text-xs text-muted-foreground">
             <GitBranch className="h-3.5 w-3.5" />
             <span className="truncate">{project.git_remote}</span>
           </div>
         ) : (
-          <div className="rounded-xl border border-dashed border-border px-3 py-2 text-xs text-subtle-foreground">
+          <div className="rounded-md border border-dashed border-border px-3 py-2 font-mono text-xs text-subtle-foreground">
             {t('projects.noRemote')}
           </div>
         )}
@@ -359,9 +326,11 @@ function ProjectCard({
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-border bg-surface-muted p-3">
-      <div className="text-[11px] uppercase tracking-[0.12em] text-subtle-foreground">{label}</div>
-      <div className="mt-1 truncate text-lg font-semibold tracking-[-0.04em] text-foreground">
+    <div className="rounded-md border border-border bg-surface-muted p-3">
+      <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-subtle-foreground">
+        {label}
+      </div>
+      <div className="mt-1 truncate font-mono text-lg font-semibold tracking-[-0.04em] text-foreground">
         {value}
       </div>
     </div>
@@ -372,7 +341,7 @@ function ProjectSkeleton() {
   return (
     <Card>
       <CardContent>
-        <div className="h-52 animate-pulse rounded-2xl bg-surface-muted" />
+        <div className="h-52 animate-pulse rounded-lg border border-border bg-surface-muted" />
       </CardContent>
     </Card>
   );

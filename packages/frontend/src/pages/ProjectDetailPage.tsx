@@ -29,18 +29,28 @@ import {
   formatDate,
   formatDuration,
 } from '../lib/format.js';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card.js';
 import { Badge } from '../components/ui/Badge.js';
+import { DataPanel } from '../components/ui/DataPanel.js';
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableContainer,
+  DataTableHead,
+  DataTableHeaderCell,
+  DataTableRow,
+} from '../components/ui/DataTable.js';
 import { EmptyState } from '../components/ui/EmptyState.js';
 import { ErrorState } from '../components/ui/ErrorState.js';
 import { LoadingState } from '../components/ui/LoadingState.js';
+import { MetricTile } from '../components/ui/MetricTile.js';
 import { useI18n } from '../components/i18n/LanguageProvider.js';
 
-const COLORS = ['#6366f1', '#818cf8', '#a78bfa', '#22c55e', '#eab308', '#ef4444'];
+const COLORS = ['#0a84ff', '#64d2ff', '#30d158', '#ff9f0a', '#ff453a', '#9a9898'];
 const tooltipStyle = {
   background: 'var(--surface-elevated)',
   border: '1px solid var(--border)',
-  borderRadius: 12,
+  borderRadius: 6,
   color: 'var(--foreground)',
   boxShadow: 'var(--shadow-card)',
   fontSize: 12,
@@ -110,7 +120,7 @@ export function ProjectDetailPage() {
   }));
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-5 p-4 lg:p-6">
       <Link
         to="/projects"
         className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -118,108 +128,107 @@ export function ProjectDetailPage() {
         <ArrowLeft className="h-4 w-4" /> {t('project.back')}
       </Link>
 
-      <Card className="overflow-hidden">
-        <CardContent className="relative p-6">
-          <div className="absolute right-8 top-8 hidden h-28 w-28 rounded-full bg-accent-soft blur-2xl md:block" />
-          <div className="relative flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-            <div className="min-w-0">
-              <div className="flex items-center gap-3">
-                <div className="grid h-12 w-12 place-items-center rounded-2xl bg-accent-soft text-accent ring-1 ring-accent/15">
-                  <FolderOpen className="h-5 w-5" />
-                </div>
-                <div className="min-w-0">
-                  <h1 className="truncate text-2xl font-semibold tracking-[-0.05em] text-foreground">
-                    {basename(String(p.path))}
-                  </h1>
-                  <p className="mt-1 truncate text-sm text-subtle-foreground">
-                    {compactPath(String(p.path))}
-                  </p>
-                </div>
+      <DataPanel className="overflow-hidden" contentClassName="p-5">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0">
+            <div className="flex items-center gap-3">
+              <div className="grid h-11 w-11 place-items-center rounded-md border border-accent/20 bg-accent-soft text-accent">
+                <FolderOpen className="h-5 w-5" />
               </div>
-              <div className="mt-4 flex flex-wrap items-center gap-2">
-                <Badge variant="success">{t('common.available')}</Badge>
-                {p.git_remote ? (
-                  <Badge variant="neutral">
-                    <GitBranch className="h-3 w-3" /> git
-                  </Badge>
-                ) : (
-                  <Badge variant="warning">{t('projects.noRemote')}</Badge>
-                )}
-                {data.commits?.branch && <Badge variant="default">{data.commits.branch}</Badge>}
+              <div className="min-w-0">
+                <h1 className="truncate font-mono text-2xl font-semibold tracking-[-0.05em] text-foreground">
+                  {basename(String(p.path))}
+                </h1>
+                <p className="mt-1 truncate text-sm text-subtle-foreground">
+                  {compactPath(String(p.path))}
+                </p>
               </div>
             </div>
-            <div className="grid min-w-[280px] grid-cols-2 gap-3">
-              <HeroMetric label={t('common.sessions')} value={String(p.total_sessions)} />
-              <HeroMetric
-                label={t('project.totalCost')}
-                value={formatCurrency(p.total_cost as number)}
-              />
-              <HeroMetric
-                label={t('project.lastActivity')}
-                value={derived.last?.started_at ? formatDate(String(derived.last.started_at)) : '—'}
-              />
-              <HeroMetric label={t('project.topModel')} value={derived.topModel} compact />
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <Badge variant="success">{t('common.available')}</Badge>
+              {p.git_remote ? (
+                <Badge variant="neutral">
+                  <GitBranch className="h-3 w-3" /> git
+                </Badge>
+              ) : (
+                <Badge variant="warning">{t('projects.noRemote')}</Badge>
+              )}
+              {data.commits?.branch && <Badge variant="default">{data.commits.branch}</Badge>}
             </div>
           </div>
-        </CardContent>
-      </Card>
+          <div className="grid min-w-[280px] grid-cols-2 gap-3">
+            <HeroMetric label={t('common.sessions')} value={String(p.total_sessions)} />
+            <HeroMetric
+              label={t('project.totalCost')}
+              value={formatCurrency(p.total_cost as number)}
+            />
+            <HeroMetric
+              label={t('project.lastActivity')}
+              value={derived.last?.started_at ? formatDate(String(derived.last.started_at)) : '—'}
+            />
+            <HeroMetric label={t('project.topModel')} value={derived.topModel} compact />
+          </div>
+        </div>
+      </DataPanel>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <MetricCard
+        <MetricTile
           icon={WalletCards}
           label={t('project.avgCost')}
           value={formatCurrency((Number(p.total_cost) || 0) / (Number(p.total_sessions) || 1))}
+          tone="info"
         />
-        <MetricCard icon={Layers3} label={t('project.topProvider')} value={derived.topProvider} />
-        <MetricCard
+        <MetricTile
+          icon={Layers3}
+          label={t('project.topProvider')}
+          value={derived.topProvider}
+          tone="info"
+        />
+        <MetricTile
           icon={Clock3}
           label={t('common.duration')}
           value={formatDuration(Number(derived.last?.duration_ms ?? 0))}
+          tone="success"
         />
-        <MetricCard
+        <MetricTile
           icon={GitBranch}
           label={t('project.gitRemote')}
           value={String(p.git_remote ?? '—')}
-          compact
+          tone="warning"
         />
       </div>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('project.spendOverTime')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={280}>
-              <AreaChart data={spendData}>
-                <CartesianGrid stroke="var(--border)" vertical={false} />
-                <XAxis
-                  dataKey="day"
-                  tick={{ fontSize: 11, fill: 'var(--subtle-foreground)' }}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  tick={{ fontSize: 11, fill: 'var(--subtle-foreground)' }}
-                  tickLine={false}
-                  axisLine={false}
-                  tickFormatter={(v: number) => `$${v.toFixed(0)}`}
-                />
-                <Tooltip
-                  contentStyle={tooltipStyle}
-                  formatter={(v: number) => [formatCurrency(v), t('common.cost')]}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="spend"
-                  stroke="#6366f1"
-                  fill="rgba(99,102,241,0.15)"
-                  strokeWidth={2.4}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        <DataPanel title={t('project.spendOverTime')}>
+          <ResponsiveContainer width="100%" height={280}>
+            <AreaChart data={spendData}>
+              <CartesianGrid stroke="var(--border)" vertical={false} />
+              <XAxis
+                dataKey="day"
+                tick={{ fontSize: 11, fill: 'var(--subtle-foreground)' }}
+                tickLine={false}
+                axisLine={false}
+              />
+              <YAxis
+                tick={{ fontSize: 11, fill: 'var(--subtle-foreground)' }}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(v: number) => `$${v.toFixed(0)}`}
+              />
+              <Tooltip
+                contentStyle={tooltipStyle}
+                formatter={(v: number) => [formatCurrency(v), t('common.cost')]}
+              />
+              <Area
+                type="monotone"
+                dataKey="spend"
+                stroke="var(--accent)"
+                fill="var(--accent-soft)"
+                strokeWidth={2.4}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </DataPanel>
 
         <DistributionCard
           title={t('project.distribution')}
@@ -228,50 +237,49 @@ export function ProjectDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('project.recentSessions')}</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-xs text-subtle-foreground">
-                    <th className="px-4 py-3 text-left font-medium">{t('common.date')}</th>
-                    <th className="px-4 py-3 text-left font-medium">{t('common.model')}</th>
-                    <th className="px-4 py-3 text-right font-medium">{t('common.cost')}</th>
-                    <th className="px-4 py-3 text-right font-medium">{t('common.duration')}</th>
-                    <th className="px-4 py-3 text-right font-medium">{t('common.confidence')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sessions.map((s) => (
-                    <SessionRow key={String(s.id)} session={s} />
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+        <DataPanel title={t('project.recentSessions')} contentClassName="p-0">
+          <DataTableContainer>
+            <DataTable>
+              <DataTableHead>
+                <DataTableRow className="hover:bg-transparent">
+                  <DataTableHeaderCell>{t('common.date')}</DataTableHeaderCell>
+                  <DataTableHeaderCell>{t('common.model')}</DataTableHeaderCell>
+                  <DataTableHeaderCell className="text-right">
+                    {t('common.cost')}
+                  </DataTableHeaderCell>
+                  <DataTableHeaderCell className="text-right">
+                    {t('common.duration')}
+                  </DataTableHeaderCell>
+                  <DataTableHeaderCell className="text-right">
+                    {t('common.confidence')}
+                  </DataTableHeaderCell>
+                </DataTableRow>
+              </DataTableHead>
+              <DataTableBody>
+                {sessions.map((s) => (
+                  <SessionRow key={String(s.id)} session={s} />
+                ))}
+              </DataTableBody>
+            </DataTable>
+          </DataTableContainer>
+        </DataPanel>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('project.gitTimeline')}</CardTitle>
-            {data.commits?.branch && <Badge variant="neutral">{data.commits.branch}</Badge>}
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {(data.commits?.commits ?? []).slice(0, 10).map((commit) => (
-              <CommitRow key={commit.hash} commit={commit} />
-            ))}
-            {(data.commits?.commits.length ?? 0) === 0 && (
-              <EmptyState
-                title={t('project.noCommits.title')}
-                description={t('project.noCommits.description')}
-                icon={GitCommitHorizontal}
-              />
-            )}
-          </CardContent>
-        </Card>
+        <DataPanel
+          title={t('project.gitTimeline')}
+          action={data.commits?.branch && <Badge variant="neutral">{data.commits.branch}</Badge>}
+          contentClassName="space-y-3"
+        >
+          {(data.commits?.commits ?? []).slice(0, 10).map((commit) => (
+            <CommitRow key={commit.hash} commit={commit} />
+          ))}
+          {(data.commits?.commits.length ?? 0) === 0 && (
+            <EmptyState
+              title={t('project.noCommits.title')}
+              description={t('project.noCommits.description')}
+              icon={GitCommitHorizontal}
+            />
+          )}
+        </DataPanel>
       </div>
     </div>
   );
@@ -287,46 +295,16 @@ function HeroMetric({
   compact?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-surface-muted p-3">
-      <div className="text-[10px] uppercase tracking-[0.12em] text-subtle-foreground">{label}</div>
+    <div className="rounded-md border border-border bg-surface-muted p-3">
+      <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-subtle-foreground">
+        {label}
+      </div>
       <div
-        className={`${compact ? 'truncate text-sm' : 'text-lg'} mt-1 font-semibold text-foreground`}
+        className={`${compact ? 'truncate text-sm' : 'text-lg'} mt-1 font-mono font-semibold text-foreground`}
       >
         {value}
       </div>
     </div>
-  );
-}
-
-function MetricCard({
-  icon: Icon,
-  label,
-  value,
-  compact,
-}: {
-  icon: typeof WalletCards;
-  label: string;
-  value: string;
-  compact?: boolean;
-}) {
-  return (
-    <Card>
-      <CardContent className="flex items-center gap-3 p-4">
-        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-accent-soft text-accent">
-          <Icon className="h-4 w-4" />
-        </div>
-        <div className="min-w-0">
-          <div className="text-[11px] uppercase tracking-[0.12em] text-subtle-foreground">
-            {label}
-          </div>
-          <div
-            className={`${compact ? 'truncate text-sm' : 'text-lg tracking-[-0.04em]'} mt-1 font-semibold text-foreground`}
-          >
-            {value}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
   );
 }
 
@@ -338,72 +316,71 @@ function DistributionCard({
   data: { name: string; value: number }[];
 }) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="grid gap-4 md:grid-cols-[180px_minmax(0,1fr)] xl:grid-cols-1">
-        <ResponsiveContainer width="100%" height={180}>
-          <PieChart>
-            <Pie
-              data={data}
-              dataKey="value"
-              nameKey="name"
-              cx="50%"
-              cy="50%"
-              outerRadius={78}
-              innerRadius={48}
-            >
-              {data.map((_, i) => (
-                <Cell key={i} fill={COLORS[i % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip
-              contentStyle={tooltipStyle}
-              formatter={(v: number) => [formatCurrency(v), '']}
+    <DataPanel
+      title={title}
+      contentClassName="grid gap-4 md:grid-cols-[180px_minmax(0,1fr)] xl:grid-cols-1"
+    >
+      <ResponsiveContainer width="100%" height={180}>
+        <PieChart>
+          <Pie
+            data={data}
+            dataKey="value"
+            nameKey="name"
+            cx="50%"
+            cy="50%"
+            outerRadius={78}
+            innerRadius={48}
+          >
+            {data.map((_, i) => (
+              <Cell key={i} fill={COLORS[i % COLORS.length]} />
+            ))}
+          </Pie>
+          <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [formatCurrency(v), '']} />
+        </PieChart>
+      </ResponsiveContainer>
+      <div className="space-y-2 text-xs">
+        {data.slice(0, 8).map((d, i) => (
+          <div key={d.name} className="flex items-center gap-2">
+            <div
+              className="h-2.5 w-2.5 rounded-sm"
+              style={{ background: COLORS[i % COLORS.length] }}
             />
-          </PieChart>
-        </ResponsiveContainer>
-        <div className="space-y-2 text-xs">
-          {data.slice(0, 8).map((d, i) => (
-            <div key={d.name} className="flex items-center gap-2">
-              <div
-                className="h-2.5 w-2.5 rounded-full"
-                style={{ background: COLORS[i % COLORS.length] }}
-              />
-              <span className="min-w-0 flex-1 truncate text-muted-foreground">{d.name}</span>
-              <span className="font-medium text-foreground">{formatCurrency(d.value)}</span>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+            <span className="min-w-0 flex-1 truncate text-muted-foreground">{d.name}</span>
+            <span className="font-mono font-medium text-foreground">{formatCurrency(d.value)}</span>
+          </div>
+        ))}
+      </div>
+    </DataPanel>
   );
 }
 
 function SessionRow({ session }: { session: Record<string, unknown> }) {
   const { t } = useI18n();
   return (
-    <tr
+    <DataTableRow
       className="cursor-pointer border-b border-border transition-colors hover:bg-surface-hover"
       onClick={() => {
         window.location.href = `/sessions/${session.id}`;
       }}
     >
-      <td className="px-4 py-3 text-foreground">{formatDate(String(session.started_at))}</td>
-      <td className="px-4 py-3 text-foreground">{String(session.model ?? '—')}</td>
-      <td className="px-4 py-3 text-right tabular-nums text-foreground">
+      <DataTableCell className="font-mono text-foreground">
+        {formatDate(String(session.started_at))}
+      </DataTableCell>
+      <DataTableCell className="font-mono text-xs text-foreground">
+        {String(session.model ?? '—')}
+      </DataTableCell>
+      <DataTableCell className="text-right font-mono tabular-nums text-foreground">
         <div>{formatCurrency(Number(session.total_cost_usd))}</div>
         {session.cost_source === 'estimated' && (
           <div className="mt-1 text-[10px] uppercase tracking-[0.12em] text-warning">
             {t('common.estimated')}
           </div>
         )}
-      </td>
-      <td className="px-4 py-3 text-right text-muted-foreground">
+      </DataTableCell>
+      <DataTableCell className="text-right font-mono text-muted-foreground">
         {formatDuration(Number(session.duration_ms))}
-      </td>
-      <td className="px-4 py-3 text-right">
+      </DataTableCell>
+      <DataTableCell className="text-right">
         <Badge
           variant={
             session.source_confidence === 'HIGH'
@@ -415,8 +392,8 @@ function SessionRow({ session }: { session: Record<string, unknown> }) {
         >
           {String(session.source_confidence)}
         </Badge>
-      </td>
-    </tr>
+      </DataTableCell>
+    </DataTableRow>
   );
 }
 
@@ -426,13 +403,15 @@ function CommitRow({
   commit: { hash: string; author: string; date: string; message: string };
 }) {
   return (
-    <div className="flex items-start gap-3 rounded-2xl border border-border bg-surface-muted p-3 text-sm">
-      <div className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent">
+    <div className="flex items-start gap-3 rounded-lg border border-border bg-surface-muted p-3 text-sm">
+      <div className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-md border border-accent/20 bg-accent-soft text-accent">
         <GitCommitHorizontal className="h-4 w-4" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="truncate font-medium text-foreground">{commit.message}</div>
-        <div className="mt-1 text-xs text-subtle-foreground">
+        <div className="truncate font-mono text-sm font-medium text-foreground">
+          {commit.message}
+        </div>
+        <div className="mt-1 font-mono text-xs text-subtle-foreground">
           {commit.hash} · {commit.author} · {formatDate(commit.date)}
         </div>
       </div>
