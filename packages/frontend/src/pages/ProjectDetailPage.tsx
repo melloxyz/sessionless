@@ -7,6 +7,7 @@ import {
   GitBranch,
   GitCommitHorizontal,
   Layers3,
+  ShieldAlert,
   WalletCards,
 } from 'lucide-react';
 import {
@@ -31,6 +32,7 @@ import {
 } from '../lib/format.js';
 import { chartColor } from '../lib/chart-colors.js';
 import { Badge } from '../components/ui/Badge.js';
+import { Button } from '../components/ui/Button.js';
 import { DataPanel } from '../components/ui/DataPanel.js';
 import {
   DataTable,
@@ -294,6 +296,8 @@ export function ProjectDetailPage() {
             />
           )}
         </DataPanel>
+
+        <BudgetControl projectPath={String(p.path)} projectCost={Number(p.total_cost) || 0} />
       </div>
     </div>
   );
@@ -362,6 +366,122 @@ function DistributionCard({
             <span className="font-mono font-medium text-foreground">{formatCurrency(d.value)}</span>
           </div>
         ))}
+      </div>
+    </DataPanel>
+  );
+}
+
+function BudgetControl({ projectPath, projectCost }: { projectPath: string; projectCost: number }) {
+  const { data: budgets } = useApi<
+    {
+      id: number;
+      scope_type: string;
+      scope_value: string | null;
+      limit_usd: number;
+      period: string;
+    }[]
+  >('/api/budgets', { initialData: [] });
+  const { data: status } = useApi<
+    {
+      id: number;
+      scope_value: string | null;
+      current_spend: number;
+      limit_usd: number;
+      percentage: number;
+      status: string;
+    }[]
+  >('/api/budgets/status', { initialData: [] });
+
+  const projectBudget = (budgets ?? []).find(
+    (b) => b.scope_type === 'project' && b.scope_value === projectPath,
+  );
+  const projectStatus = (status ?? []).find((s) => s.scope_value === projectPath);
+
+  if (!projectBudget) {
+    return (
+      <DataPanel title="Budget" contentClassName="p-3 space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">No budget set for this project</span>
+        </div>
+        <Button
+          size="sm"
+          onClick={async () => {
+            await fetch('/api/budgets', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                scope_type: 'project',
+                scope_value: projectPath,
+                limit_usd: Math.ceil(projectCost * 1.5) || 50,
+                period: 'monthly',
+              }),
+            });
+            window.location.reload();
+          }}
+        >
+          <WalletCards className="h-3.5 w-3.5" />
+          Set Budget
+        </Button>
+      </DataPanel>
+    );
+  }
+
+  return (
+    <DataPanel title="Budget" contentClassName="p-3 space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-muted-foreground">{projectBudget.period} limit</span>
+        <Badge
+          variant={
+            projectStatus?.status === 'exceeded'
+              ? 'danger'
+              : projectStatus?.status === 'approaching'
+                ? 'warning'
+                : 'success'
+          }
+        >
+          {projectStatus?.status === 'ok' ? 'OK' : `${projectStatus?.percentage ?? 0}%`}
+        </Badge>
+      </div>
+
+      <div className="space-y-1">
+        <div className="flex justify-between font-mono text-sm">
+          <span className="text-foreground">${(projectStatus?.current_spend ?? 0).toFixed(2)}</span>
+          <span className="text-subtle-foreground">of ${projectBudget.limit_usd.toFixed(2)}</span>
+        </div>
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-muted">
+          <div
+            className={`h-full rounded-full transition-all ${
+              (projectStatus?.status ?? 'ok') === 'exceeded'
+                ? 'bg-danger'
+                : (projectStatus?.status ?? 'ok') === 'approaching'
+                  ? 'bg-warning'
+                  : 'bg-accent'
+            }`}
+            style={{ width: `${Math.min(projectStatus?.percentage ?? 0, 100)}%` }}
+          />
+        </div>
+      </div>
+
+      {projectStatus && projectStatus.status !== 'ok' && (
+        <div className="flex items-center gap-2 rounded-lg border border-danger/20 bg-danger/5 px-3 py-2 text-sm">
+          <ShieldAlert className="h-4 w-4 text-danger" />
+          <span className="text-danger">
+            {projectStatus.status === 'exceeded' ? 'Budget exceeded!' : 'Approaching limit'}
+          </span>
+        </div>
+      )}
+
+      <div className="flex gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={async () => {
+            await fetch(`/api/budgets/${projectBudget.id}`, { method: 'DELETE' });
+            window.location.reload();
+          }}
+        >
+          Remove
+        </Button>
       </div>
     </DataPanel>
   );

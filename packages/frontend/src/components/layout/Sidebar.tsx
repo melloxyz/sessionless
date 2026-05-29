@@ -12,6 +12,7 @@ import {
   Settings,
   Sun,
   Github,
+  WalletCards,
   type LucideIcon,
 } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageProvider.js';
@@ -23,7 +24,13 @@ import { BrandMark, getBrandMeta } from '../brand/BrandMark.js';
 
 const NAV_ITEMS: {
   to: string;
-  labelKey: 'nav.dashboard' | 'nav.sessions' | 'nav.projects' | 'nav.models' | 'nav.analytics';
+  labelKey:
+    | 'nav.dashboard'
+    | 'nav.sessions'
+    | 'nav.projects'
+    | 'nav.models'
+    | 'nav.analytics'
+    | 'nav.budgets';
   icon: LucideIcon;
 }[] = [
   { to: '/', labelKey: 'nav.dashboard', icon: LayoutDashboard },
@@ -31,6 +38,7 @@ const NAV_ITEMS: {
   { to: '/projects', labelKey: 'nav.projects', icon: FolderOpen },
   { to: '/models', labelKey: 'nav.models', icon: PackageOpen },
   { to: '/analytics', labelKey: 'nav.analytics', icon: BarChart3 },
+  { to: '/budgets', labelKey: 'nav.budgets', icon: WalletCards },
 ];
 
 export function Sidebar() {

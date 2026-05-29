@@ -6,6 +6,7 @@ import {
   Database,
   MessageSquare,
   MoreHorizontal,
+  ShieldAlert,
   Timer,
   WalletCards,
 } from 'lucide-react';
@@ -100,6 +101,17 @@ interface SessionDetail extends SessionRow {
   messages: { id: number; role: string; content: string; timestamp: string }[];
 }
 
+interface BudgetStatusItem {
+  id: number;
+  scope_type: string;
+  scope_value: string | null;
+  limit_usd: number;
+  period: string;
+  current_spend: number;
+  percentage: number;
+  status: 'ok' | 'warning' | 'approaching' | 'exceeded';
+}
+
 export function DashboardPage() {
   const { t } = useI18n();
   const navigate = useNavigate();
@@ -172,6 +184,13 @@ export function DashboardPage() {
   useEffect(() => {
     if (!selectedId && recentSessions?.data?.[0]) setSelectedId(recentSessions.data[0].id);
   }, [recentSessions, selectedId]);
+
+  const { data: budgetStatus } = useApi<BudgetStatusItem[]>('/api/budgets/status', {
+    initialData: [],
+  });
+  const exceededBudgets = (budgetStatus ?? []).filter(
+    (b) => b.status === 'exceeded' || b.status === 'approaching',
+  );
 
   const spendPoints = spendData?.points ?? [];
   const tokenPoints = tokenData?.points ?? [];
@@ -293,6 +312,43 @@ export function DashboardPage() {
             className="w-full xl:w-[230px]"
           />
         </div>
+
+        {exceededBudgets.length > 0 && (
+          <div className="grid gap-2">
+            {exceededBudgets.slice(0, 3).map((b) => (
+              <Link
+                key={`${b.id}-${b.scope_type}-${b.scope_value}`}
+                to="/budgets"
+                className="flex items-center gap-3 rounded-lg border border-danger/25 bg-danger/5 px-4 py-3 transition-colors hover:border-danger/40"
+              >
+                <ShieldAlert className="h-5 w-5 shrink-0 text-danger" />
+                <div className="min-w-0 flex-1">
+                  <span className="text-sm font-semibold text-danger">
+                    {b.status === 'exceeded' ? 'Budget exceeded' : 'Budget limit approaching'}
+                  </span>
+                  <span className="ml-2 text-sm text-muted-foreground">
+                    {b.scope_value ?? 'Global'} ({b.period}):{' '}
+                    <span className="font-mono font-medium text-foreground">
+                      ${b.current_spend.toFixed(2)}
+                    </span>{' '}
+                    / <span className="font-mono text-foreground">${b.limit_usd.toFixed(2)}</span>
+                  </span>
+                </div>
+                <Badge
+                  variant={b.status === 'exceeded' ? 'danger' : 'warning'}
+                  className="shrink-0"
+                >
+                  {b.percentage.toFixed(0)}%
+                </Badge>
+              </Link>
+            ))}
+            {exceededBudgets.length > 3 && (
+              <Link to="/budgets" className="text-center text-xs text-accent hover:underline">
+                +{exceededBudgets.length - 3} more budget alerts
+              </Link>
+            )}
+          </div>
+        )}
 
         <section className="space-y-3">
           <div className="grid grid-cols-1 items-stretch gap-3 lg:grid-cols-2 2xl:grid-cols-[1.35fr_1fr_1fr]">

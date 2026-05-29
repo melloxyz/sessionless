@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import {
+  AlertTriangle,
   CheckCircle2,
   Database,
   Languages,
@@ -9,6 +10,7 @@ import {
   Moon,
   RadioTower,
   RefreshCw,
+  ShieldAlert,
   ShieldCheck,
   Sun,
 } from 'lucide-react';
@@ -61,6 +63,18 @@ interface TrayStatus {
   available: boolean;
 }
 
+interface AlertRow {
+  id: number;
+  budget_id: number | null;
+  type: string;
+  title: string;
+  message: string;
+  current_spend: number;
+  limit_usd: number;
+  acknowledged: number;
+  created_at: string;
+}
+
 export function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const { locale, setLocale, t } = useI18n();
@@ -99,6 +113,16 @@ export function SettingsPage() {
   } = useApi<TrayStatus>('/api/tray/status');
   const [trayUpdating, setTrayUpdating] = useState(false);
   const [trayMutationError, setTrayMutationError] = useState<string | null>(null);
+
+  const {
+    data: alertsData,
+    loading: alertsLoading,
+    refetch: refetchAlerts,
+  } = useApi<{ alerts: AlertRow[]; total: number }>('/api/alerts', {
+    initialData: { alerts: [], total: 0 },
+  });
+
+  const unacknowledgedAlerts = (alertsData?.alerts ?? []).filter((a) => !a.acknowledged);
 
   async function runIngestion() {
     setIngestionRunning(true);
@@ -538,6 +562,69 @@ export function SettingsPage() {
                   </Badge>
                 </div>
               ))}
+        </DataPanel>
+
+        <DataPanel
+          title="Budget Alerts"
+          action={
+            unacknowledgedAlerts.length > 0 ? (
+              <Badge variant="danger">{unacknowledgedAlerts.length}</Badge>
+            ) : (
+              <Badge variant="success">0</Badge>
+            )
+          }
+          contentClassName="p-3 space-y-2"
+        >
+          {alertsLoading && !alertsData ? (
+            <div className="py-2 text-center text-sm text-muted-foreground">Loading</div>
+          ) : alertsData && alertsData.alerts.length === 0 ? (
+            <div className="py-2 text-center text-sm text-muted-foreground">
+              <CheckCircle2 className="mx-auto mb-1.5 h-4 w-4 text-subtle-foreground" />
+              No budget alerts
+            </div>
+          ) : (
+            <div className="max-h-[300px] space-y-2 overflow-y-auto">
+              {(alertsData?.alerts ?? []).slice(0, 10).map((a) => (
+                <div
+                  key={a.id}
+                  className={`rounded-lg border p-2.5 text-xs ${
+                    a.acknowledged
+                      ? 'border-border bg-surface-muted'
+                      : a.type === 'exceeded'
+                        ? 'border-danger/30 bg-danger/5'
+                        : 'border-warning/30 bg-warning/5'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        {a.type === 'exceeded' ? (
+                          <ShieldAlert className="h-3 w-3 shrink-0 text-danger" />
+                        ) : (
+                          <AlertTriangle className="h-3 w-3 shrink-0 text-warning" />
+                        )}
+                        <span className="font-mono font-semibold text-foreground">{a.title}</span>
+                      </div>
+                      <div className="mt-0.5 text-muted-foreground">{a.message}</div>
+                    </div>
+                    {!a.acknowledged && (
+                      <button
+                        onClick={async () => {
+                          await fetch(`/api/alerts/${a.id}/acknowledge`, {
+                            method: 'POST',
+                          });
+                          await refetchAlerts();
+                        }}
+                        className="shrink-0 rounded p-1 text-subtle-foreground transition-colors hover:text-accent"
+                      >
+                        <CheckCircle2 className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </DataPanel>
       </aside>
     </div>

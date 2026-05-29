@@ -126,6 +126,13 @@ async function runIngestionInternal(): Promise<IngestionStatus> {
   status.completedAt = new Date().toISOString();
   saveDatabase();
 
+  const { checkBudgets } = await import('../analytics/budgets.js');
+  try {
+    checkBudgets();
+  } catch {
+    // budget check failure should not break ingestion
+  }
+
   return status;
 }
 

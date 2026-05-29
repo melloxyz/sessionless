@@ -27,6 +27,7 @@ import { registerModelRoutes } from './routes/models.js';
 import { syncOpenRouterPricing } from './openrouter.js';
 import { trayManager, isTrayEnabled } from './tray/index.js';
 import { registerTrayRoutes } from './routes/tray.js';
+import { registerBudgetRoutes } from './routes/budgets.js';
 
 const PORT = Number(process.env.SESSIONLESS_PORT || process.env.AIMETER_PORT) || 3030;
 const NO_TRAY = process.argv.includes('--no-tray');
@@ -57,6 +58,7 @@ async function main() {
     registerProjectRoutes(app);
     registerModelRoutes(app);
     registerTrayRoutes(app);
+    registerBudgetRoutes(app);
 
     app.get('/api/ingest/status', async () => {
       const status = getLastStatus();
