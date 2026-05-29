@@ -100,7 +100,13 @@ export function MetricTile({
             )}
           >
             {loading ? (
-              <Skeleton className={isCompact ? 'h-2.5 w-16 border-current/20 bg-current/10' : 'h-3 w-20 border-current/20 bg-current/10'} />
+              <Skeleton
+                className={
+                  isCompact
+                    ? 'h-2.5 w-16 border-current/20 bg-current/10'
+                    : 'h-3 w-20 border-current/20 bg-current/10'
+                }
+              />
             ) : (
               meta
             )}

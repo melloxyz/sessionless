@@ -11,6 +11,7 @@ interface StatCardProps {
   sparkline?: boolean;
   compact?: boolean;
   iconVariant?: 'tone' | 'neutral';
+  className?: string;
 }
 
 export function StatCard({
@@ -23,6 +24,7 @@ export function StatCard({
   sparkline,
   compact,
   iconVariant,
+  className,
 }: StatCardProps) {
   return (
     <MetricTile
@@ -35,6 +37,7 @@ export function StatCard({
       sparkline={sparkline}
       compact={compact}
       iconVariant={iconVariant}
+      className={className}
     />
   );
 }

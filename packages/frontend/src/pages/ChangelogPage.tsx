@@ -98,10 +98,10 @@ export function ChangelogPage() {
                 <a
                   key={c.github}
                   href={`https://github.com/${c.github}`}
-                target="_blank"
-                rel="noreferrer"
-                className="group block"
-              >
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group block"
+                >
                   <DataPanel contentClassName="flex items-center gap-3 p-3 transition-colors group-hover:bg-surface-hover">
                     <img
                       src={`https://avatars.githubusercontent.com/${c.github}`}

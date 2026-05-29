@@ -216,7 +216,7 @@ export function DashboardPage() {
 
   return (
     <div
-      className="grid min-h-full grid-cols-1 gap-5 p-4 lg:p-6 xl:grid-cols-[minmax(0,1fr)_380px]"
+      className="grid min-h-full grid-cols-1 gap-4 p-4 lg:p-6 xl:grid-cols-[minmax(0,1fr)_380px]"
       aria-busy={isValidating}
     >
       {anyError && (
@@ -230,8 +230,8 @@ export function DashboardPage() {
           />
         </section>
       )}
-      <section className="xl:col-span-2">
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+      <div className="min-w-0 space-y-3">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:flex xl:flex-wrap xl:items-stretch xl:justify-between">
           <StatCard
             label={t('dashboard.totalSpend')}
             value={formatCurrency(overview?.totalSpend)}
@@ -242,6 +242,7 @@ export function DashboardPage() {
             sparkline
             compact
             iconVariant="neutral"
+            className="w-full xl:w-[230px]"
           />
           <StatCard
             label={t('dashboard.totalTokens')}
@@ -253,6 +254,7 @@ export function DashboardPage() {
             sparkline
             compact
             iconVariant="neutral"
+            className="w-full xl:w-[230px]"
           />
           <StatCard
             label={t('dashboard.totalSessions')}
@@ -264,6 +266,7 @@ export function DashboardPage() {
             sparkline
             compact
             iconVariant="neutral"
+            className="w-full xl:w-[230px]"
           />
           <StatCard
             label={t('dashboard.avgCostSession')}
@@ -275,6 +278,7 @@ export function DashboardPage() {
             sparkline
             compact
             iconVariant="neutral"
+            className="w-full xl:w-[230px]"
           />
           <StatCard
             label={t('dashboard.totalDuration')}
@@ -286,190 +290,193 @@ export function DashboardPage() {
             sparkline
             compact
             iconVariant="neutral"
-          />
-        </div>
-      </section>
-
-      <section className="space-y-5">
-        <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2 2xl:grid-cols-[1.35fr_1fr_1fr]">
-          <DataPanel
-            className="lg:col-span-2 2xl:col-span-1"
-            title={t('project.spendOverTime')}
-            description={t('dashboard.spendTrendDescription')}
-            action={
-              <Button variant="outline" size="sm">
-                {t('common.daily')}
-              </Button>
-            }
-            contentClassName="pt-4"
-          >
-            {spendLoading && !spendData ? (
-              <ChartSkeleton />
-            ) : (
-              <ResponsiveContainer width="100%" height={280}>
-                <AreaChart data={spendPoints}>
-                  <defs>
-                    <linearGradient id="spendGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.35} />
-                      <stop offset="95%" stopColor="var(--accent)" stopOpacity={0.02} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid stroke="var(--border)" vertical={false} />
-                  <XAxis
-                    dataKey="date"
-                    tick={{ fontSize: 11, fill: 'var(--subtle-foreground)' }}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 11, fill: 'var(--subtle-foreground)' }}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(value: number) => `$${value.toFixed(0)}`}
-                  />
-                  <Tooltip
-                    {...chartTooltipProps}
-                    formatter={(value: number) => [formatCurrency(value), t('common.cost')]}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="spend"
-                    stroke="var(--accent)"
-                    fill="url(#spendGradient)"
-                    strokeWidth={2.4}
-                    dot={{ r: 3, fill: 'var(--accent)' }}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            )}
-          </DataPanel>
-
-          <DonutCard
-            title={t('dashboard.spendByCli')}
-            data={cliData}
-            center={formatCurrency(overview?.totalSpend)}
-            centerLabel={t('common.total')}
-            emptyTitle={t('dashboard.noSpend.title')}
-            emptyDescription={t('dashboard.noSpend.description')}
-            loading={cliLoading && !cliBreakdown}
-            colorFor={(label, index) => CLI_COLORS[label] ?? chartColor(index)}
-          />
-          <DonutCard
-            title={t('dashboard.spendByModel')}
-            data={modelData}
-            center={`${modelData.length}`}
-            centerLabel={t('dashboard.modelsLabel')}
-            emptyTitle={t('dashboard.noSpend.title')}
-            emptyDescription={t('dashboard.noSpend.description')}
-            loading={modelLoading && !modelBreakdown}
-            colorFor={(_, index) => chartColor(index)}
+            className="w-full xl:w-[230px]"
           />
         </div>
 
-        <DataPanel
-          className="overflow-hidden"
-          title={t('dashboard.recentSessions')}
-          description={t('dashboard.recentSessionsDescription')}
-          action={
-            <Link
-              to="/sessions"
-              className="inline-flex items-center gap-2 rounded-sm font-mono text-xs font-medium text-accent transition-colors hover:text-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
+        <section className="space-y-3">
+          <div className="grid grid-cols-1 items-stretch gap-3 lg:grid-cols-2 2xl:grid-cols-[1.35fr_1fr_1fr]">
+            <DataPanel
+              className="lg:col-span-2 2xl:col-span-1"
+              title={t('project.spendOverTime')}
+              description={t('dashboard.spendTrendDescription')}
+              action={
+                <Button variant="outline" size="sm">
+                  {t('common.daily')}
+                </Button>
+              }
+              contentClassName="pt-4"
             >
-              {t('dashboard.viewAllSessions')} <ArrowUpRight className="h-4 w-4" />
-            </Link>
-          }
-          contentClassName="p-0"
-        >
-          <DataTableContainer className="max-h-[560px] overflow-auto">
-            <DataTable>
-              <DataTableHead className="sticky top-0 z-10 bg-surface">
-                <DataTableRow className="hover:bg-transparent">
-                  <DataTableHeaderCell>{t('common.session')}</DataTableHeaderCell>
-                  <DataTableHeaderCell>{t('common.cli')}</DataTableHeaderCell>
-                  <DataTableHeaderCell>{t('common.model')}</DataTableHeaderCell>
-                  <DataTableHeaderCell>{t('common.project')}</DataTableHeaderCell>
-                  <DataTableHeaderCell className="text-right">
-                    {t('common.duration')}
-                  </DataTableHeaderCell>
-                  <DataTableHeaderCell className="text-right">
-                    {t('common.cost')}
-                  </DataTableHeaderCell>
-                  <DataTableHeaderCell className="text-right">
-                    {t('common.time')}
-                  </DataTableHeaderCell>
-                  <DataTableHeaderCell className="w-10" />
-                </DataTableRow>
-              </DataTableHead>
-              <DataTableBody>
-                {recentSessionsLoading && !recentSessions ? (
-                  <TableSkeletonRows rows={8} columns={8} />
-                ) : (
-                  (recentSessions?.data ?? []).map((session) => (
-                    <DataTableRow
-                      key={session.id}
-                      onClick={() => navigate(`/sessions/${session.id}`)}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                          event.preventDefault();
-                          navigate(`/sessions/${session.id}`);
-                        }
-                      }}
-                      tabIndex={0}
-                      role="button"
-                      aria-label={t('dashboard.openSession')}
-                      className="cursor-pointer"
-                    >
-                      <DataTableCell>
-                        <div className="flex items-center gap-3">
-                          <BrandMark value={session.cli} size="sm" />
-                          <div>
-                            <div className="font-mono text-sm font-medium text-foreground">
-                              {session.session_id.slice(0, 8)}
+              {spendLoading && !spendData ? (
+                <ChartSkeleton />
+              ) : (
+                <ResponsiveContainer width="100%" height={280}>
+                  <AreaChart data={spendPoints}>
+                    <defs>
+                      <linearGradient id="spendGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.35} />
+                        <stop offset="95%" stopColor="var(--accent)" stopOpacity={0.02} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid stroke="var(--border)" vertical={false} />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fontSize: 11, fill: 'var(--subtle-foreground)' }}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 11, fill: 'var(--subtle-foreground)' }}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(value: number) => `$${value.toFixed(0)}`}
+                    />
+                    <Tooltip
+                      {...chartTooltipProps}
+                      formatter={(value: number) => [formatCurrency(value), t('common.cost')]}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="spend"
+                      stroke="var(--accent)"
+                      fill="url(#spendGradient)"
+                      strokeWidth={2.4}
+                      dot={{ r: 3, fill: 'var(--accent)' }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
+            </DataPanel>
+
+            <DonutCard
+              title={t('dashboard.spendByCli')}
+              data={cliData}
+              center={formatCurrency(overview?.totalSpend)}
+              centerLabel={t('common.total')}
+              emptyTitle={t('dashboard.noSpend.title')}
+              emptyDescription={t('dashboard.noSpend.description')}
+              loading={cliLoading && !cliBreakdown}
+              colorFor={(label, index) => CLI_COLORS[label] ?? chartColor(index)}
+            />
+            <DonutCard
+              title={t('dashboard.spendByModel')}
+              data={modelData}
+              center={`${modelData.length}`}
+              centerLabel={t('dashboard.modelsLabel')}
+              emptyTitle={t('dashboard.noSpend.title')}
+              emptyDescription={t('dashboard.noSpend.description')}
+              loading={modelLoading && !modelBreakdown}
+              colorFor={(_, index) => chartColor(index)}
+            />
+          </div>
+
+          <DataPanel
+            className="overflow-hidden"
+            title={t('dashboard.recentSessions')}
+            description={t('dashboard.recentSessionsDescription')}
+            action={
+              <Link
+                to="/sessions"
+                className="inline-flex items-center gap-2 rounded-sm font-mono text-xs font-medium text-accent transition-colors hover:text-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
+              >
+                {t('dashboard.viewAllSessions')} <ArrowUpRight className="h-4 w-4" />
+              </Link>
+            }
+            contentClassName="p-0"
+          >
+            <DataTableContainer className="max-h-[560px] overflow-auto">
+              <DataTable>
+                <DataTableHead className="sticky top-0 z-10 bg-surface">
+                  <DataTableRow className="hover:bg-transparent">
+                    <DataTableHeaderCell>{t('common.session')}</DataTableHeaderCell>
+                    <DataTableHeaderCell>{t('common.cli')}</DataTableHeaderCell>
+                    <DataTableHeaderCell>{t('common.model')}</DataTableHeaderCell>
+                    <DataTableHeaderCell>{t('common.project')}</DataTableHeaderCell>
+                    <DataTableHeaderCell className="text-right">
+                      {t('common.duration')}
+                    </DataTableHeaderCell>
+                    <DataTableHeaderCell className="text-right">
+                      {t('common.cost')}
+                    </DataTableHeaderCell>
+                    <DataTableHeaderCell className="text-right">
+                      {t('common.time')}
+                    </DataTableHeaderCell>
+                    <DataTableHeaderCell className="w-10" />
+                  </DataTableRow>
+                </DataTableHead>
+                <DataTableBody>
+                  {recentSessionsLoading && !recentSessions ? (
+                    <TableSkeletonRows rows={8} columns={8} />
+                  ) : (
+                    (recentSessions?.data ?? []).map((session) => (
+                      <DataTableRow
+                        key={session.id}
+                        onClick={() => navigate(`/sessions/${session.id}`)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            navigate(`/sessions/${session.id}`);
+                          }
+                        }}
+                        tabIndex={0}
+                        role="button"
+                        aria-label={t('dashboard.openSession')}
+                        className="cursor-pointer"
+                      >
+                        <DataTableCell>
+                          <div className="flex items-center gap-3">
+                            <BrandMark value={session.cli} size="sm" />
+                            <div>
+                              <div className="font-mono text-sm font-medium text-foreground">
+                                {session.session_id.slice(0, 8)}
+                              </div>
+                              <div className="text-xs text-subtle-foreground">
+                                {session.provider}
+                              </div>
                             </div>
-                            <div className="text-xs text-subtle-foreground">{session.provider}</div>
                           </div>
-                        </div>
-                      </DataTableCell>
-                      <DataTableCell>
-                        <BrandBadge value={session.cli} />
-                      </DataTableCell>
-                      <DataTableCell className="font-mono text-xs text-muted-foreground">
-                        {session.model ?? t('common.unknown')}
-                      </DataTableCell>
-                      <DataTableCell className="max-w-[220px] truncate text-muted-foreground">
-                        {compactPath(session.project_path)}
-                      </DataTableCell>
-                      <DataTableCell className="text-right font-mono tabular-nums text-muted-foreground">
-                        {formatDuration(session.duration_ms)}
-                      </DataTableCell>
-                      <DataTableCell className="text-right font-mono tabular-nums font-medium text-foreground">
-                        <div>{formatCurrency(session.total_cost_usd)}</div>
-                        {session.cost_source === 'estimated' && (
-                          <div className="mt-1 text-[10px] uppercase tracking-[0.12em] text-warning">
-                            {t('common.estimated')}
-                          </div>
-                        )}
-                      </DataTableCell>
-                      <DataTableCell className="text-right text-muted-foreground">
-                        {formatRelativeTime(session.started_at)}
-                      </DataTableCell>
-                      <DataTableCell className="text-right">
-                        <MoreHorizontal className="h-4 w-4 text-subtle-foreground" />
-                      </DataTableCell>
-                    </DataTableRow>
-                  ))
-                )}
-              </DataTableBody>
-            </DataTable>
-          </DataTableContainer>
-        </DataPanel>
-      </section>
+                        </DataTableCell>
+                        <DataTableCell>
+                          <BrandBadge value={session.cli} />
+                        </DataTableCell>
+                        <DataTableCell className="font-mono text-xs text-muted-foreground">
+                          {session.model ?? t('common.unknown')}
+                        </DataTableCell>
+                        <DataTableCell className="max-w-[220px] truncate text-muted-foreground">
+                          {compactPath(session.project_path)}
+                        </DataTableCell>
+                        <DataTableCell className="text-right font-mono tabular-nums text-muted-foreground">
+                          {formatDuration(session.duration_ms)}
+                        </DataTableCell>
+                        <DataTableCell className="text-right font-mono tabular-nums font-medium text-foreground">
+                          <div>{formatCurrency(session.total_cost_usd)}</div>
+                          {session.cost_source === 'estimated' && (
+                            <div className="mt-1 text-[10px] uppercase tracking-[0.12em] text-warning">
+                              {t('common.estimated')}
+                            </div>
+                          )}
+                        </DataTableCell>
+                        <DataTableCell className="text-right text-muted-foreground">
+                          {formatRelativeTime(session.started_at)}
+                        </DataTableCell>
+                        <DataTableCell className="text-right">
+                          <MoreHorizontal className="h-4 w-4 text-subtle-foreground" />
+                        </DataTableCell>
+                      </DataTableRow>
+                    ))
+                  )}
+                </DataTableBody>
+              </DataTable>
+            </DataTableContainer>
+          </DataPanel>
+        </section>
+      </div>
 
       <aside className="space-y-4">
         {selectedSessionLoading && !selectedSession ? (
           <PanelSkeleton className="h-full min-h-[520px]" />
         ) : (
-          <DataPanel className="h-full" contentClassName="space-y-5">
+          <DataPanel className="h-full" contentClassName="space-y-4">
             <div className="flex items-start gap-3">
               <BrandMark value={selectedSession?.cli} size="lg" />
               <div className="min-w-0 flex-1">
@@ -510,7 +517,7 @@ export function DashboardPage() {
               />
             ) : (
               <>
-                <div className="grid grid-cols-1 gap-2 rounded-lg border border-border bg-surface-muted p-2 text-center sm:grid-cols-3">
+                <div className="grid grid-cols-1 gap-2 rounded-lg border border-border bg-surface-muted p-2.5 text-center sm:grid-cols-3">
                   <MiniMetric
                     label={t('common.cost')}
                     value={formatCurrency(selectedSession?.total_cost_usd)}
@@ -525,7 +532,7 @@ export function DashboardPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 gap-2 rounded-lg border border-border bg-surface-muted p-2 text-center sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-2 rounded-lg border border-border bg-surface-muted p-2.5 text-center sm:grid-cols-2">
                   <MiniMetric
                     label={t('common.messages')}
                     value={String(selectedSession?.message_count ?? 0)}
@@ -536,8 +543,8 @@ export function DashboardPage() {
                   />
                 </div>
 
-                <div className="rounded-md border border-border p-4">
-                  <div className="mb-4 font-mono text-sm font-semibold text-foreground">
+                <div className="rounded-md border border-border p-3">
+                  <div className="mb-3 font-mono text-sm font-semibold text-foreground">
                     {t('session.tokenUsage')}
                   </div>
                   <TokenUsageBar
@@ -548,8 +555,8 @@ export function DashboardPage() {
                   />
                 </div>
 
-                <div className="rounded-md border border-border p-4 text-sm">
-                  <div className="mb-4 font-mono text-sm font-semibold text-foreground">
+                <div className="rounded-md border border-border p-3 text-sm">
+                  <div className="mb-3 font-mono text-sm font-semibold text-foreground">
                     {t('session.metadata')}
                   </div>
                   <InfoRow
@@ -697,10 +704,12 @@ function DonutCard({
 function MiniMetric({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-subtle-foreground">
+      <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-subtle-foreground">
         {label}
       </div>
-      <div className="mt-1 truncate font-mono text-sm font-semibold text-foreground">{value}</div>
+      <div className="mt-1 truncate font-mono text-sm font-semibold leading-tight text-foreground">
+        {value}
+      </div>
     </div>
   );
 }

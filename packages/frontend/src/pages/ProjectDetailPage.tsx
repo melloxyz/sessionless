@@ -251,9 +251,9 @@ export function ProjectDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
-          <DataPanel title={t('project.recentSessions')} contentClassName="p-0">
-            <DataTableContainer>
-              <DataTable>
+        <DataPanel title={t('project.recentSessions')} contentClassName="p-0">
+          <DataTableContainer>
+            <DataTable>
               <DataTableHead className="sticky top-0 z-10 bg-surface">
                 <DataTableRow className="hover:bg-transparent">
                   <DataTableHeaderCell>{t('common.date')}</DataTableHeaderCell>
