@@ -96,6 +96,7 @@ export function SessionsPage() {
       )}
 
       <FilterBar
+        className="gap-3"
         actions={
           <Select
             value={cli}
@@ -113,7 +114,7 @@ export function SessionsPage() {
           />
         }
       >
-        <div className="relative w-full max-w-md flex-1 min-w-0">
+        <div className="relative min-w-0 flex-1 max-w-md">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle-foreground" />
           <Input
             value={searchInput}
@@ -131,7 +132,7 @@ export function SessionsPage() {
       <DataPanel contentClassName="p-0" aria-busy={validating}>
         <DataTableContainer>
           <DataTable>
-            <DataTableHead>
+            <DataTableHead className="sticky top-0 z-10 bg-surface">
               <DataTableRow className="hover:bg-transparent">
                 <HeaderCell onClick={() => handleSort('started_at')}>
                   {t('common.session')}
@@ -179,7 +180,7 @@ export function SessionsPage() {
                     <DataTableCell>
                       <BrandBadge value={session.cli} />
                     </DataTableCell>
-                    <DataTableCell className="font-mono text-xs text-muted-foreground">
+                    <DataTableCell className="max-w-[220px] font-mono text-xs text-muted-foreground">
                       {session.model ?? t('common.unknown')}
                     </DataTableCell>
                     <DataTableCell>

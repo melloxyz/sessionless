@@ -94,6 +94,7 @@ export function ModelsPage() {
   return (
     <div className="space-y-5 p-4 lg:p-6">
       <FilterBar
+        className="gap-3"
         actions={
           <>
             <Button
@@ -109,7 +110,7 @@ export function ModelsPage() {
           </>
         }
       >
-        <div className="relative w-full min-w-0 flex-1 sm:min-w-[260px]">
+        <div className="relative min-w-0 flex-1 sm:min-w-[260px]">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle-foreground" />
           <Input
             value={search}
@@ -170,7 +171,7 @@ export function ModelsPage() {
       >
         <DataTableContainer>
           <DataTable>
-            <DataTableHead>
+            <DataTableHead className="sticky top-0 z-10 bg-surface">
               <DataTableRow className="hover:bg-transparent">
                 <DataTableHeaderCell>{t('common.provider')}</DataTableHeaderCell>
                 <DataTableHeaderCell>{t('common.model')}</DataTableHeaderCell>
@@ -199,7 +200,7 @@ export function ModelsPage() {
                     </DataTableCell>
                     <DataTableCell>
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs text-foreground">
+                        <span className="max-w-[18rem] truncate font-mono text-xs text-foreground">
                           {model.model_name}
                         </span>
                         {Boolean(model.is_used) && (
@@ -263,7 +264,7 @@ function UsedModelCard({
 }) {
   return (
     <Card>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         <div className="flex items-start gap-3">
           <BrandMark value={model.provider} kind="provider" size="md" />
           <div className="min-w-0">
@@ -288,7 +289,7 @@ function UsedModelCard({
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="font-mono text-[10px] uppercase tracking-[0.1em] text-subtle-foreground">
+      <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-subtle-foreground">
         {label}
       </div>
       <div className="mt-1 truncate font-mono font-semibold text-foreground">{value}</div>

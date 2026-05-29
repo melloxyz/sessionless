@@ -231,7 +231,7 @@ export function DashboardPage() {
         </section>
       )}
       <section className="xl:col-span-2">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
           <StatCard
             label={t('dashboard.totalSpend')}
             value={formatCurrency(overview?.totalSpend)}
@@ -240,6 +240,8 @@ export function DashboardPage() {
             change={`+ ${t('dashboard.live')}`}
             changeTone="success"
             sparkline
+            compact
+            iconVariant="neutral"
           />
           <StatCard
             label={t('dashboard.totalTokens')}
@@ -249,6 +251,8 @@ export function DashboardPage() {
             change={t('dashboard.allSources')}
             changeTone="info"
             sparkline
+            compact
+            iconVariant="neutral"
           />
           <StatCard
             label={t('dashboard.totalSessions')}
@@ -258,6 +262,8 @@ export function DashboardPage() {
             change={`${formatTokens(totalMessages)} ${t('common.messages').toLowerCase()}`}
             changeTone="info"
             sparkline
+            compact
+            iconVariant="neutral"
           />
           <StatCard
             label={t('dashboard.avgCostSession')}
@@ -267,6 +273,8 @@ export function DashboardPage() {
             change={overview?.mostUsedCli ?? '—'}
             changeTone="warning"
             sparkline
+            compact
+            iconVariant="neutral"
           />
           <StatCard
             label={t('dashboard.totalDuration')}
@@ -276,6 +284,8 @@ export function DashboardPage() {
             change={t('dashboard.indexed')}
             changeTone="success"
             sparkline
+            compact
+            iconVariant="neutral"
           />
         </div>
       </section>

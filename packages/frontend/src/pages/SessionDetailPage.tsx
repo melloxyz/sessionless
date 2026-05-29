@@ -167,7 +167,7 @@ export function SessionDetailPage() {
         </Badge>
       </div>
 
-      <DataPanel contentClassName="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+      <DataPanel contentClassName="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex min-w-0 items-start gap-4">
           <BrandMark value={session.cli} size="lg" />
           <div className="min-w-0">
@@ -178,7 +178,7 @@ export function SessionDetailPage() {
                 {formatRelativeTime(session.started_at)}
               </span>
             </div>
-            <h1 className="truncate font-mono text-2xl font-semibold tracking-[-0.04em] text-foreground">
+            <h1 className="truncate font-mono text-xl font-semibold tracking-[-0.04em] text-foreground lg:text-2xl">
               {t('common.session')} {session.session_id.slice(0, 12)}
             </h1>
             <p className="mt-1 truncate text-sm text-muted-foreground">
@@ -359,7 +359,17 @@ function MetricBadge({
   tone: 'success' | 'warning' | 'info';
 }) {
   return (
-    <MetricTile label={label} value={value} tone={tone} icon={Icon} className="min-h-[92px]" />
+    <MetricTile
+      label={label}
+      value={value}
+      tone={tone}
+      icon={Icon}
+      className="min-h-[92px]"
+      compact
+      iconVariant="neutral"
+      valueWrap
+      valueClassName="text-[1.05rem] leading-tight lg:text-[1.1rem]"
+    />
   );
 }
 

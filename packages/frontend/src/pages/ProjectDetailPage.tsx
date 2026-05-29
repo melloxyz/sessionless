@@ -122,23 +122,23 @@ export function ProjectDetailPage() {
         <ArrowLeft className="h-4 w-4" /> {t('project.back')}
       </Link>
 
-      <DataPanel className="overflow-hidden" contentClassName="p-5">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+      <DataPanel className="overflow-hidden" contentClassName="p-4 lg:p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <div className="flex items-center gap-3">
-              <div className="grid h-11 w-11 place-items-center rounded-md border border-accent/20 bg-accent-soft text-accent">
-                <FolderOpen className="h-5 w-5" />
+              <div className="grid h-10 w-10 place-items-center rounded-md border border-border bg-transparent text-subtle-foreground">
+                <FolderOpen className="h-4.5 w-4.5" />
               </div>
               <div className="min-w-0">
-                <h1 className="truncate font-mono text-2xl font-semibold tracking-[-0.05em] text-foreground">
+                <h1 className="truncate font-mono text-xl font-semibold tracking-[-0.05em] text-foreground lg:text-2xl">
                   {basename(String(p.path))}
                 </h1>
-                <p className="mt-1 truncate text-sm text-subtle-foreground">
+                <p className="mt-1 truncate text-xs text-subtle-foreground lg:text-sm">
                   {compactPath(String(p.path))}
                 </p>
               </div>
             </div>
-            <div className="mt-4 flex flex-wrap items-center gap-2">
+            <div className="mt-3 flex flex-wrap items-center gap-2">
               <Badge variant="success">{t('common.available')}</Badge>
               {p.git_remote ? (
                 <Badge variant="neutral">
@@ -151,16 +151,18 @@ export function ProjectDetailPage() {
             </div>
           </div>
           <div className="grid w-full max-w-[420px] grid-cols-1 gap-3 sm:grid-cols-2">
-            <HeroMetric label={t('common.sessions')} value={String(p.total_sessions)} />
+            <HeroMetric label={t('common.sessions')} value={String(p.total_sessions)} compact />
             <HeroMetric
               label={t('project.totalCost')}
               value={formatCurrency(p.total_cost as number)}
+              compact
             />
             <HeroMetric
               label={t('project.lastActivity')}
               value={derived.last?.started_at ? formatDate(String(derived.last.started_at)) : '—'}
+              compact
             />
-            <HeroMetric label={t('project.topModel')} value={derived.topModel} compact />
+            <HeroMetric label={t('project.topModel')} value={derived.topModel} compact wrap />
           </div>
         </div>
       </DataPanel>
@@ -171,24 +173,36 @@ export function ProjectDetailPage() {
           label={t('project.avgCost')}
           value={formatCurrency((Number(p.total_cost) || 0) / (Number(p.total_sessions) || 1))}
           tone="info"
+          compact
+          iconVariant="neutral"
         />
         <MetricTile
           icon={Layers3}
           label={t('project.topProvider')}
           value={derived.topProvider}
           tone="info"
+          compact
+          iconVariant="neutral"
+          valueWrap
+          valueClassName="text-[1rem] leading-tight lg:text-[1.05rem]"
         />
         <MetricTile
           icon={Clock3}
           label={t('common.duration')}
           value={formatDuration(Number(derived.last?.duration_ms ?? 0))}
           tone="success"
+          compact
+          iconVariant="neutral"
         />
         <MetricTile
           icon={GitBranch}
           label={t('project.gitRemote')}
           value={String(p.git_remote ?? '—')}
           tone="warning"
+          compact
+          iconVariant="neutral"
+          valueWrap
+          valueClassName="text-[1rem] leading-tight lg:text-[1.05rem]"
         />
       </div>
 
@@ -237,10 +251,10 @@ export function ProjectDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
-        <DataPanel title={t('project.recentSessions')} contentClassName="p-0">
-          <DataTableContainer>
-            <DataTable>
-              <DataTableHead>
+          <DataPanel title={t('project.recentSessions')} contentClassName="p-0">
+            <DataTableContainer>
+              <DataTable>
+              <DataTableHead className="sticky top-0 z-10 bg-surface">
                 <DataTableRow className="hover:bg-transparent">
                   <DataTableHeaderCell>{t('common.date')}</DataTableHeaderCell>
                   <DataTableHeaderCell>{t('common.model')}</DataTableHeaderCell>
@@ -289,18 +303,20 @@ function HeroMetric({
   label,
   value,
   compact,
+  wrap,
 }: {
   label: string;
   value: string;
   compact?: boolean;
+  wrap?: boolean;
 }) {
   return (
     <div className="rounded-md border border-border bg-surface-muted p-3">
-      <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-subtle-foreground">
+      <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-subtle-foreground">
         {label}
       </div>
       <div
-        className={`${compact ? 'truncate text-sm' : 'text-lg'} mt-1 font-mono font-semibold text-foreground`}
+        className={`${compact ? 'text-sm lg:text-[1.05rem]' : 'text-lg'} ${wrap ? 'whitespace-normal break-words' : 'truncate'} mt-1 font-mono font-semibold leading-tight text-foreground`}
       >
         {value}
       </div>

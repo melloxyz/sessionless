@@ -9,6 +9,8 @@ interface StatCardProps {
   icon?: LucideIcon;
   loading?: boolean;
   sparkline?: boolean;
+  compact?: boolean;
+  iconVariant?: 'tone' | 'neutral';
 }
 
 export function StatCard({
@@ -19,6 +21,8 @@ export function StatCard({
   icon: Icon,
   loading,
   sparkline,
+  compact,
+  iconVariant,
 }: StatCardProps) {
   return (
     <MetricTile
@@ -29,6 +33,8 @@ export function StatCard({
       icon={Icon}
       loading={loading}
       sparkline={sparkline}
+      compact={compact}
+      iconVariant={iconVariant}
     />
   );
 }

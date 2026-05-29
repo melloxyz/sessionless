@@ -319,7 +319,7 @@ export function AnalyticsPage() {
         title={t('analytics.summaryTitle')}
         description={t('analytics.summaryDescription')}
       />
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
         <SummaryCard
           icon={TrendingUp}
           label={t('analytics.sevenDaySpend')}
@@ -897,7 +897,16 @@ function SummaryCard({
   loading?: boolean;
 }) {
   return (
-    <MetricTile icon={Icon} label={label} value={value} meta={sub} tone={tone} loading={loading} />
+    <MetricTile
+      icon={Icon}
+      label={label}
+      value={value}
+      meta={sub}
+      tone={tone}
+      loading={loading}
+      compact
+      iconVariant="neutral"
+    />
   );
 }
 

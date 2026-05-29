@@ -30,7 +30,7 @@ export function ChangelogPage() {
   const { t } = useI18n();
 
   return (
-    <div className="flex min-h-full flex-col gap-4 overflow-auto p-4 lg:p-6 xl:h-full xl:min-h-0 xl:overflow-hidden">
+    <div className="flex min-h-full flex-col gap-3 overflow-auto p-4 lg:p-6 xl:h-full xl:min-h-0 xl:overflow-hidden">
       <DataPanel contentClassName="p-3 lg:p-4">
         <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -62,10 +62,10 @@ export function ChangelogPage() {
         <section className="flex min-h-0 min-w-0 flex-col gap-2 overflow-x-hidden">
           <div className="flex items-end justify-between gap-2 px-1">
             <div>
-              <h3 className="font-mono text-xs uppercase tracking-[0.22em] text-muted-foreground">
+              <h3 className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
                 Timeline
               </h3>
-              <p className="mt-1 max-w-2xl text-xs text-subtle-foreground">
+              <p className="mt-1 max-w-2xl text-[11px] leading-5 text-subtle-foreground">
                 {t('changelog.timeline.description')}
               </p>
             </div>
@@ -86,10 +86,10 @@ export function ChangelogPage() {
         <aside className="min-w-0 space-y-4 overflow-x-hidden">
           <section className="space-y-3">
             <div className="px-1">
-              <h3 className="font-mono text-xs uppercase tracking-[0.22em] text-muted-foreground">
+              <h3 className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
                 {t('changelog.contributors.title')}
               </h3>
-              <p className="mt-1 text-xs text-subtle-foreground">
+              <p className="mt-1 text-[11px] leading-5 text-subtle-foreground">
                 {t('changelog.contributors.description')}
               </p>
             </div>
@@ -98,15 +98,15 @@ export function ChangelogPage() {
                 <a
                   key={c.github}
                   href={`https://github.com/${c.github}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="group block"
-                >
-                  <DataPanel contentClassName="flex items-center gap-4 p-4 transition-colors group-hover:bg-surface-hover">
+                target="_blank"
+                rel="noreferrer"
+                className="group block"
+              >
+                  <DataPanel contentClassName="flex items-center gap-3 p-3 transition-colors group-hover:bg-surface-hover">
                     <img
                       src={`https://avatars.githubusercontent.com/${c.github}`}
                       alt={c.name}
-                      className="h-12 w-12 shrink-0 rounded-full border border-border"
+                      className="h-10 w-10 shrink-0 rounded-full border border-border"
                       loading="lazy"
                     />
                     <div className="min-w-0">
@@ -143,7 +143,7 @@ function ActionLink({
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="inline-flex max-w-full items-center gap-2 rounded-md border border-border bg-surface-elevated px-3 py-2 font-mono text-xs font-medium text-accent transition-colors hover:border-border-strong hover:text-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
+      className="inline-flex max-w-full items-center gap-2 rounded-md border border-border bg-surface-elevated px-3 py-2 font-mono text-[11px] font-medium text-accent transition-colors hover:border-border-strong hover:text-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
     >
       <Icon className="h-4 w-4 shrink-0" />
       <span className="truncate">{children}</span>
@@ -158,10 +158,10 @@ function TimelineItem({ entryKey, tags }: { entryKey: string; tags: string[] }) 
   return (
     <DataPanel
       className="overflow-hidden"
-      contentClassName="space-y-2.5 overflow-x-hidden border-l-2 border-l-accent/35 p-3 pl-4 lg:px-4 lg:py-3 lg:pl-5"
+      contentClassName="space-y-2 overflow-x-hidden border-l-2 border-l-accent/35 p-3 pl-4 lg:px-4 lg:py-3 lg:pl-5"
     >
       <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5">
-        <span className="font-mono text-xs font-semibold text-accent">
+        <span className="font-mono text-[11px] font-semibold text-accent">
           {t(`${entryKey}.version`)}
         </span>
         <span className="text-xs text-subtle-foreground">|</span>
@@ -174,11 +174,11 @@ function TimelineItem({ entryKey, tags }: { entryKey: string; tags: string[] }) 
         </div>
       </div>
 
-      <h4 className="font-mono text-sm font-semibold tracking-[-0.02em] text-foreground">
+      <h4 className="font-mono text-[13px] font-semibold tracking-[-0.02em] text-foreground">
         {t(`${entryKey}.title`)}
       </h4>
 
-      <ul className="space-y-1.5 text-sm leading-5 text-muted-foreground">
+      <ul className="space-y-1.5 text-[13px] leading-5 text-muted-foreground">
         {items.map((item) => (
           <li key={item} className="flex gap-2">
             <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-subtle-foreground" />

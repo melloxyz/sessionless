@@ -107,13 +107,15 @@ export function ProjectsPage() {
 
   return (
     <div className="space-y-5 p-4 lg:p-6">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <MetricTile
           icon={FolderOpen}
           label={t('projects.summary.visible')}
           value={String(summary.visible)}
           tone="info"
           loading={isInitialLoading}
+          compact
+          iconVariant="neutral"
         />
         <MetricTile
           icon={HardDrive}
@@ -121,6 +123,8 @@ export function ProjectsPage() {
           value={String(summary.available)}
           tone="success"
           loading={isInitialLoading}
+          compact
+          iconVariant="neutral"
         />
         <MetricTile
           icon={HardDrive}
@@ -128,6 +132,8 @@ export function ProjectsPage() {
           value={String(summary.missing)}
           tone="warning"
           loading={isInitialLoading}
+          compact
+          iconVariant="neutral"
         />
         <MetricTile
           icon={SlidersHorizontal}
@@ -135,6 +141,8 @@ export function ProjectsPage() {
           value={formatCurrency(summary.spend)}
           tone="info"
           loading={isInitialLoading}
+          compact
+          iconVariant="neutral"
         />
       </div>
 
@@ -185,7 +193,7 @@ export function ProjectsPage() {
             title={t('projects.top.title')}
             description={t('projects.top.description')}
           />
-          <div className="grid gap-4 lg:grid-cols-3">
+          <div className="grid gap-3 lg:grid-cols-3">
             {topProjects.map((project, index) => (
               <ProjectCard
                 key={project.id}
@@ -206,7 +214,7 @@ export function ProjectsPage() {
           title={t('projects.all.title')}
           description={t('projects.all.description')}
         />
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
           {isInitialLoading
             ? Array.from({ length: 9 }).map((_, index) => <ProjectSkeleton key={index} />)
             : projects.map((project) => (

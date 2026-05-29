@@ -120,7 +120,7 @@ export function SettingsPage() {
 
   return (
     <div
-      className="grid gap-5 p-4 lg:p-6 xl:grid-cols-[minmax(0,1fr)_380px]"
+      className="grid gap-4 p-4 lg:p-6 xl:grid-cols-[minmax(0,1fr)_380px]"
       aria-busy={isValidating}
     >
       <section className="space-y-5">
@@ -229,12 +229,12 @@ export function SettingsPage() {
               <div className="rounded-lg border border-border bg-surface-elevated p-4">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex gap-3">
-                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-md border border-accent/20 bg-accent-soft text-accent">
-                      <RadioTower className="h-5 w-5" />
+                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-md border border-border bg-transparent text-subtle-foreground">
+                      <RadioTower className="h-4.5 w-4.5" />
                     </div>
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <div className="font-mono text-sm font-medium text-foreground">
+                        <div className="font-mono text-sm font-semibold text-foreground">
                           {t('settings.autoIngestion')}
                         </div>
                         <Badge variant={autoIngestion?.enabled ? 'success' : 'neutral'}>
@@ -268,7 +268,7 @@ export function SettingsPage() {
                         : t('settings.enableAutoIngestion')}
                   </Button>
                 </div>
-                <div className="mt-4 grid gap-3 rounded-lg border border-border bg-surface-muted p-4 text-sm md:grid-cols-2">
+                <div className="mt-4 grid gap-3 rounded-lg border border-border bg-surface-muted p-3 text-sm md:grid-cols-2">
                   <SummaryRow
                     label={t('settings.watchedPaths')}
                     value={String(autoIngestion?.watchedPathCount ?? 0)}
@@ -300,7 +300,7 @@ export function SettingsPage() {
                   </div>
                 )}
               </div>
-              <div className="rounded-lg border border-border bg-surface-muted p-4 text-sm">
+              <div className="rounded-lg border border-border bg-surface-muted p-3 text-sm">
                 <SummaryRow
                   label={t('common.started')}
                   value={
@@ -327,7 +327,7 @@ export function SettingsPage() {
                   {adapterRows.map(([cli, info]) => (
                     <div
                       key={cli}
-                      className="flex items-center justify-between gap-3 rounded-lg border border-border bg-surface-elevated p-3"
+                      className="flex items-center justify-between gap-3 rounded-lg border border-border bg-surface-elevated p-2.5"
                     >
                       <div className="flex min-w-0 items-center gap-3">
                         <BrandMark value={cli} size="sm" />
@@ -529,14 +529,14 @@ function StatusTile({
   loading?: boolean;
 }) {
   return (
-    <div className="rounded-lg border border-border bg-surface-muted p-4">
-      <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-subtle-foreground">
+    <div className="rounded-lg border border-border bg-surface-muted p-3">
+      <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-subtle-foreground">
         {label}
       </div>
       {loading ? (
-        <Skeleton className="mt-2 h-8 w-20" />
+        <Skeleton className="mt-2 h-7 w-20" />
       ) : (
-        <div className="mt-1 font-mono text-2xl font-semibold tracking-[-0.05em] text-foreground">
+        <div className="mt-1 font-mono text-[1.55rem] font-semibold tracking-[-0.05em] text-foreground">
           {value}
         </div>
       )}
@@ -554,7 +554,7 @@ function SummaryRow({
   loading?: boolean;
 }) {
   return (
-    <div className="flex justify-between gap-4 text-sm">
+    <div className="flex items-start justify-between gap-4 text-sm">
       <span className="text-muted-foreground">{label}</span>
       {loading ? (
         <Skeleton className="h-4 w-20" />
